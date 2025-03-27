@@ -1,0 +1,33 @@
+services:
+  app:
+    image: nginx:latest
+    container_name: test_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - test_network
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+
+  db:
+    image: mysql:latest
+    container_name: test_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - test_network
+
+networks:
+  test_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

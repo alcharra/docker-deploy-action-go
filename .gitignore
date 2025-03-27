@@ -1,0 +1,61 @@
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Binaries
+/docker-deploy-action-go
+
+# Build cache & local modules
+vendor/
+/bin/
+/dist/
+/build/
+*.mod
+*.sum
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Editor/IDE files
+.vs
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.pid.lock
+*.sock
+.env
+.docker/
+.dockerignore
+
+# Docker Compose override files
+docker-compose.override.yml
+
+# Backups created by the action
+.backup_*/
+
+# GitHub Actions cache/temp
+.github/workflows/*.bak
+.github/workflows/*.log
+.github/workflows/tmp/
+
+# Test output
+coverage.out
+*.coverprofile
+
+# SSH keys
+id_rsa
+id_rsa.pub
