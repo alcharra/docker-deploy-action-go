@@ -8,15 +8,13 @@
 *.out
 
 # Binaries
-/docker-deploy-action-go
+/deploy-action
 
 # Build cache & local modules
 vendor/
 /bin/
 /dist/
 /build/
-*.mod
-*.sum
 
 # Logs and temp files
 *.log

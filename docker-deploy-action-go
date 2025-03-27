@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+BINARY_NAME="deploy-action"
+
+# Add .exe if running on Windows
+if [[ "$OS" == "Windows_NT" ]]; then
+  BINARY_NAME="${BINARY_NAME}.exe"
+fi
+
+# Build if not exists
+if [ ! -f "$BINARY_NAME" ]; then
+  #echo "Building Go binary..."
+  go build -o "$BINARY_NAME"
+fi
+
+#echo "Running binary: $BINARY_NAME"
+./"$BINARY_NAME"
