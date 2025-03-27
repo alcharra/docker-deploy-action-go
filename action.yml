@@ -70,7 +70,7 @@ runs:
   steps:
     - name: Run Docker Deploy (Go)
       shell: bash
-      run: ${{ github.action_path }}/docker-deploy-action-go
+      run: ${{ github.action_path }}/deploy-action
       env:
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_PORT: ${{ inputs.ssh_port }}
