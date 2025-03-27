@@ -30,17 +30,18 @@ This speed gain comes from running a single compiled binary without shell overhe
 <details>
 <summary>📸 See test outputs</summary>
 
-| Go Version  | Output                        |
-|-------------|-------------------------------|
-| ![Go Test 1](./screenshots/go-deploy-1.png) |
-| ![Go Test 2](./screenshots/go-deploy-2.png) |
-| ![Go Test 3](./screenshots/go-deploy-3.png) |
+| Go Version     | Output                                      |
+|----------------|:-------------------------------------------:|
+| Test 1         | ![Go Test 1](./screenshots/go-deploy-1.png) |
+| Test 2         | ![Go Test 2](./screenshots/go-deploy-2.png) |
+| Test 3         | ![Go Test 3](./screenshots/go-deploy-3.png) |
 
-| PowerShell/Bash | Output                            |
-|-----------------|-----------------------------------|
-| ![Script Test 1](./screenshots/script-deploy-1.png) |
-| ![Script Test 2](./screenshots/script-deploy-2.png) |
-| ![Script Test 3](./screenshots/script-deploy-3.png) |
+
+| PowerShell/Bash  | Output                                              |
+|------------------|:---------------------------------------------------:|
+| Test 1           | ![Script Test 1](./screenshots/script-deploy-1.png) |
+| Test 2           | ![Script Test 2](./screenshots/script-deploy-2.png) |
+| Test 3           | ![Script Test 3](./screenshots/script-deploy-3.png) |
 
 </details>
 

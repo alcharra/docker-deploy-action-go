@@ -3,6 +3,7 @@ package docker
 import (
 	"fmt"
 	"log"
+	"path"
 
 	"github.com/alcharra/docker-deploy-action-go/config"
 	"github.com/alcharra/docker-deploy-action-go/ssh"
@@ -16,6 +17,7 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 	stack := cfg.StackName
 	projectPath := cfg.ProjectPath
 	rollback := cfg.EnableRollback
+	deployFile := path.Base(cfg.DeployFile)
 
 	cmd := fmt.Sprintf(`
 		STACK="%s"
@@ -53,7 +55,7 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 
 			exit 1
 		fi
-	`, stack, projectPath, rollback, cfg.DeployFile)
+	`, stack, projectPath, rollback, deployFile)
 
 	err := client.RunCommandStreamed(cmd)
 	if err != nil {
