@@ -3,11 +3,44 @@ set -e
 
 BINARY_NAME="deploy-action"
 
-# Build for Windows only (Linux binary should already be committed)
-if [[ "$OS" == "Windows_NT" ]]; then
-  BINARY_NAME="${BINARY_NAME}.exe"
-  go build -o "$BINARY_NAME"
+# Detect the operating system and architecture
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    BINARY_NAME="${BINARY_NAME}_linux"
+    ARCH="amd64"
+    if [[ "$(uname -m)" == "aarch64" ]]; then
+        ARCH="arm64"
+    fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    BINARY_NAME="${BINARY_NAME}_darwin"
+    ARCH="amd64"
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        ARCH="arm64"
+    fi
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    BINARY_NAME="${BINARY_NAME}_windows.exe"
+    ARCH="amd64"
+    if [[ "$(uname -m)" == "aarch64" ]]; then
+        ARCH="arm64"
+    fi
+elif [[ "$OSTYPE" == "freebsd"* ]]; then
+    BINARY_NAME="${BINARY_NAME}_freebsd"
+    ARCH="amd64"
+    if [[ "$(uname -m)" == "aarch64" ]]; then
+        ARCH="arm64"
+    fi
+elif [[ "$OSTYPE" == "openbsd"* ]]; then
+    BINARY_NAME="${BINARY_NAME}_openbsd"
+    ARCH="amd64"
+elif [[ "$OSTYPE" == "aix"* ]]; then
+    BINARY_NAME="${BINARY_NAME}_aix"
+    ARCH="ppc64"
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
 fi
+
+# Build the Go binary for the detected OS and architecture
+GOOS=windows GOARCH=$ARCH go build -o "$BINARY_NAME"
 
 # Run the binary
 ./"$BINARY_NAME"

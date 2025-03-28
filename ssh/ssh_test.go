@@ -3,12 +3,14 @@ package ssh
 import (
 	"strings"
 	"testing"
+
+	"github.com/alcharra/docker-deploy-action-go/config"
 )
 
 func TestNewClient_Valid(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("expected SSH client to connect, got error: %v", err)
 	}
@@ -16,16 +18,23 @@ func TestNewClient_Valid(t *testing.T) {
 }
 
 func TestNewClient_InvalidKey(t *testing.T) {
-	_, err := NewClient("example.com", "22", "invalid", "not_a_real_key")
+	cfg := config.DeployConfig{
+		SSHHost: "example.com",
+		SSHPort: "22",
+		SSHUser: "invalid",
+		SSHKey:  "not_a_real_key",
+	}
+
+	_, err := NewClient(cfg)
 	if err == nil {
 		t.Fatal("expected error with invalid SSH key, got nil")
 	}
 }
 
 func TestRunCommandBuffered(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("SSH client creation failed: %v", err)
 	}
@@ -44,9 +53,9 @@ func TestRunCommandBuffered(t *testing.T) {
 }
 
 func TestRunCommandBuffered_InvalidCommand(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("SSH client creation failed: %v", err)
 	}
@@ -62,9 +71,9 @@ func TestRunCommandBuffered_InvalidCommand(t *testing.T) {
 }
 
 func TestRunCommandStreamed(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("SSH client creation failed: %v", err)
 	}

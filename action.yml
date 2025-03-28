@@ -7,61 +7,71 @@ branding:
 
 inputs:
   ssh_host:
-    description: "Target server hostname or IP"
+    description: "The target server's hostname or IP address."
     required: true
   ssh_port:
-    description: "SSH port"
+    description: "The port to use for the SSH connection."
     required: false
     default: "22"
   ssh_user:
-    description: "SSH username"
+    description: "The username used to establish the SSH connection."
     required: true
   ssh_key:
-    description: "SSH private key"
+    description: "The private SSH key used to authenticate the connection."
     required: true
+  ssh_key_passphrase:
+    description: "Passphrase for the encrypted SSH private key"
+    required: false
+  timeout:
+    description: "SSH connection timeout (e.g. 10s, 30s, 1m)."
+    required: false
+    default: "10s"
+  fingerprint:
+    description: "The SSH host fingerprint used to verify the server's identity (SHA256 format)."
+    required: false
   project_path:
-    description: "Remote directory on server where files should be uploaded"
+    description: "The remote directory on the server where files should be uploaded."
     required: true
   deploy_file:
-    description: "Path to the Docker Compose or Stack file used for deployment"
+    description: "The path to the file used to define the deployment (e.g. Docker Compose or Stack file)."
     required: true
     default: "docker-compose.yml"
   extra_files:
-    description: "Additional files to upload (like .env, traefik.yml)"
+    description: "A list of additional files to upload (e.g. .env, config.yml)."
     required: false
   mode:
-    description: "Deployment mode (compose or stack)"
+    description: "The deployment mode to use (e.g. 'compose' or 'stack')."
     required: false
     default: "compose"
   stack_name:
-    description: "Swarm stack name (required if mode is 'stack')"
+    description: "The name of the stack to deploy (required if mode is set to 'stack')."
     required: false
   docker_network:
-    description: "Name of a Docker network required for the deployment (optional — created if missing)"
+    description: "The name of the network to be used for deployment (created if it does not exist)."
     required: false
   docker_network_driver:
-    description: "Driver for the Docker network (bridge, overlay, macvlan, etc.)"
+    description: "The driver to use for the network (e.g. bridge, overlay, macvlan)."
     required: false
     default: "bridge"
   docker_network_attachable:
-    description: "Allow standalone containers to attach to the Swarm network (true/false)"
+    description: "Whether standalone containers should be allowed to attach to the network (true/false)."
     required: false
     default: "false"
   docker_prune:
-    description: "Optional prune type: system, volumes, networks, images, containers, none"
+    description: "Specify a prune option to clean up unused resources: system, volumes, networks, images, containers, or none."
     required: false
     default: "none"
   registry_host:
-    description: "Registry Authentication Host"
+    description: "The host address for the remote registry or service requiring authentication."
     required: true
   registry_user:
-    description: "Registry Authentication User"
+    description: "The username used for authenticating with the registry or remote service."
     required: true
   registry_pass:
-    description: "Registry Authentication Pass"
+    description: "The password or token used for authenticating with the registry or remote service."
     required: true
   enable_rollback:
-    description: "Enable automatic rollback if deployment fails (true/false)"
+    description: "Whether to enable automatic rollback if the deployment fails (true/false)."
     required: false
     default: "false"
 
@@ -70,12 +80,16 @@ runs:
   steps:
     - name: Run Docker Deploy (Go)
       shell: bash
-      run: ${{ github.action_path }}/deploy-action
+      run: |
+        ${GITHUB_ACTION_PATH}/docker-deploy-action
       env:
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_PORT: ${{ inputs.ssh_port }}
         SSH_USER: ${{ inputs.ssh_user }}
         SSH_KEY: ${{ inputs.ssh_key }}
+        SSH_KEY_PASSPHRASE: ${{ inputs.ssh_key_passphrase }}
+        TIMEOUT: ${{ inputs.timeout }}
+        FINGERPRINT: ${{ inputs.fingerprint }}
         PROJECT_PATH: ${{ inputs.project_path }}
         DEPLOY_FILE: ${{ inputs.deploy_file }}
         EXTRA_FILES: ${{ inputs.extra_files }}
