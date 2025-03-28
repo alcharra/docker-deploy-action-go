@@ -1,0 +1,55 @@
+name: Deploy Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-compose:
+    name: Deploy Test (Compose)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Test Docker Deploy Action - Compose
+        uses: alcharra/docker-deploy-action@v2
+        with:
+          ssh_host: ${{ secrets.TEST_SSH_HOST }}
+          ssh_user: ${{ secrets.TEST_SSH_USER }}
+          ssh_key: ${{ secrets.TEST_SSH_KEY }}
+          project_path: /home/${{ secrets.TEST_SSH_USER }}/test/compose
+          deploy_file: ./tests/compose/docker-compose.yml
+          extra_files: ./tests/compose/.env
+          mode: compose
+          docker_network: test_network_compose
+          docker_network_driver: bridge
+          docker_prune: system
+          enable_rollback: true
+
+  deploy-stack:
+    name: Deploy Test (Stack)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Test Docker Deploy Action - Stack
+        uses: alcharra/docker-deploy-action@v2
+        with:
+          ssh_host: ${{ secrets.TEST_SSH_HOST }}
+          ssh_user: ${{ secrets.TEST_SSH_USER }}
+          ssh_key: ${{ secrets.TEST_SSH_KEY }}
+          project_path: /home/${{ secrets.TEST_SSH_USER }}/test/stack
+          deploy_file: ./tests/stack/docker-stack.yml
+          extra_files: ./tests/stack/redis.conf,./tests/stack/nginx.conf
+          mode: stack
+          stack_name: test_stack
+          docker_network: test_network_stack
+          docker_network_driver: overlay
+          docker_prune: system
+          enable_rollback: true
