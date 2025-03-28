@@ -6,6 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/alcharra/docker-deploy-action-go)](https://goreportcard.com/report/github.com/alcharra/docker-deploy-action-go)
 [![CodeQL](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml)
 [![Deploy Test](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/deploy-test.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/deploy-test.yml)
+[![GoDoc](https://godoc.org/github.com/alcharra/docker-deploy-action-go?status.svg)](https://godoc.org/github.com/alcharra/docker-deploy-action-go)
 
 A **reliable and efficient GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** services over SSH.
 
@@ -17,12 +18,12 @@ The Go-based deployment tool was built with speed in mind — here’s a real-wo
 
 ### Test Details
 
-Both tools were tested under identical conditions: a Docker Compose deployment using the same configuration file along with three additional files (~1KB each). The tests were run on the same server, using the same SSH key, network and project path, ensuring a fair comparison between the two implementations. 
+Both tools were tested under identical conditions: a Docker Compose deployment using the same configuration file along with three additional files (~1KB each). The tests were run on the same server, using the same SSH key, network and project path, ensuring a fair comparison between the two implementations.
 
 ### Results
 
 | Tool            | Average Time | Fastest Time | Slowest Time |
-|-----------------|--------------|--------------|--------------|
+| --------------- | ------------ | ------------ | ------------ |
 | PowerShell/Bash | ~8.64s       | 8.38s        | 8.84s        |
 | Go              | ~4.85s       | 4.82s        | 4.90s        |
 
@@ -33,42 +34,60 @@ This speed gain comes from running a single compiled binary without shell overhe
 <details>
 <summary>📸 See test outputs</summary>
 
-| Go Version     | Output                                      |
-|----------------|:-------------------------------------------:|
-| Test 1         | ![Go Test 1](./screenshots/go-deploy-1.png) |
-| Test 2         | ![Go Test 2](./screenshots/go-deploy-2.png) |
-| Test 3         | ![Go Test 3](./screenshots/go-deploy-3.png) |
+| Go Version |                   Output                    |
+| ---------- | :-----------------------------------------: |
+| Test 1     | ![Go Test 1](./screenshots/go-deploy-1.png) |
+| Test 2     | ![Go Test 2](./screenshots/go-deploy-2.png) |
+| Test 3     | ![Go Test 3](./screenshots/go-deploy-3.png) |
 
-
-| PowerShell/Bash  | Output                                              |
-|------------------|:---------------------------------------------------:|
-| Test 1           | ![Script Test 1](./screenshots/script-deploy-1.png) |
-| Test 2           | ![Script Test 2](./screenshots/script-deploy-2.png) |
-| Test 3           | ![Script Test 3](./screenshots/script-deploy-3.png) |
+| PowerShell/Bash |                       Output                        |
+| --------------- | :-------------------------------------------------: |
+| Test 1          | ![Script Test 1](./screenshots/script-deploy-1.png) |
+| Test 2          | ![Script Test 2](./screenshots/script-deploy-2.png) |
+| Test 3          | ![Script Test 3](./screenshots/script-deploy-3.png) |
 
 </details>
 
 ## Inputs
 
-|  Input Parameter            |  Description                                                               | Required     | Default Value        |
-| -------------------------   | -------------------------------------------------------------------------- | :----------: | -------------------- |
-| `ssh_host`                  |  Hostname or IP of the target server                                       | ✅          |                      |
-| `ssh_port`                  |  SSH port                                                                  | ❌          | `22`                 |
-| `ssh_user`                  |  SSH username                                                              | ✅          |                      |
-| `ssh_key`                   |  SSH private key                                                           | ✅          |                      |
-| `project_path`              |  Path on the server where files will be uploaded                           | ✅          |                      |
-| `deploy_file`               |  Path to the Docker Compose or Stack file used for deployment              | ✅          | `docker-compose.yml` |
-| `extra_files`               |  Additional files to upload (e.g., `.env`, config files)                   | ❌          |                      |
-| `mode`                      |  Deployment mode (`compose` or `stack`)                                    | ❌          | `compose`            |
-| `stack_name`                |  Swarm stack name (only used if `mode` is `stack`)                         | ❌          |                      |
-| `docker_network`            |  Docker network name to ensure exists                                      | ❌          |                      |
-| `docker_network_driver`     |  Network driver (`bridge`, `overlay`, `macvlan`, etc.)                     | ❌          | `bridge`             |
-| `docker_network_attachable` |  Allow standalone containers to attach to the Swarm network (`true/false`) | ❌          | `false`              |
-| `docker_prune`              |  Type of Docker prune to run after deployment                              | ❌          |                      |
-| `registry_host`             |  Registry Authentication Host                                              | ❌          |                      |
-| `registry_user`             |  Registry Authentication User                                              | ❌          |                      |
-| `registry_pass`             |  Registry Authentication Pass                                              | ❌          |                      |
-| `enable_rollback`           |  Enable automatic rollback if deployment fails (`true/false`)              | ❌          | `false`              |
+| Input Parameter             | Description                                                                 | Required | Default Value        |
+| --------------------------- | --------------------------------------------------------------------------- | :------: | -------------------- |
+| `ssh_host`                  | Hostname or IP address of the target server                                 |    ✅    |                      |
+| `ssh_port`                  | Port used for the SSH connection                                            |    ❌    | `22`                 |
+| `ssh_user`                  | Username used for the SSH connection                                        |    ✅    |                      |
+| `ssh_key`                   | Private SSH key for authentication                                          |    ✅    |                      |
+| `ssh_key_passphrase`        | Passphrase for the encrypted SSH private key                                |    ❌    |                      |
+| `timeout`                   | SSH connection timeout (e.g. `10s`, `30s`, `1m`)                            |    ❌    | `10s`                |
+| `fingerprint`               | SSH host fingerprint for verifying the server's identity (SHA256 format)    |    ❌    |                      |
+| `project_path`              | Path on the server where files will be uploaded                             |    ✅    |                      |
+| `deploy_file`               | Path to the file used for defining the deployment (e.g. Docker Compose)     |    ✅    | `docker-compose.yml` |
+| `extra_files`               | Additional files to upload (e.g. `.env`, config files)                      |    ❌    |                      |
+| `mode`                      | Deployment mode (`compose` or `stack`)                                      |    ❌    | `compose`            |
+| `stack_name`                | Stack name used during Swarm deployment (required if mode is `stack`)       |    ❌    |                      |
+| `docker_network`            | Name of the Docker network to be used or created if missing                 |    ❌    |                      |
+| `docker_network_driver`     | Driver for the network (`bridge`, `overlay`, `macvlan`, etc.)               |    ❌    | `bridge`             |
+| `docker_network_attachable` | Whether standalone containers can attach to the network (`true` / `false`)  |    ❌    | `false`              |
+| `docker_prune`              | Type of Docker resource prune to run after deployment                       |    ❌    | `none`               |
+| `registry_host`             | Host address for the registry or remote service requiring authentication    |    ❌    |                      |
+| `registry_user`             | Username for authenticating with the registry or remote service             |    ❌    |                      |
+| `registry_pass`             | Password or token for authenticating with the registry or remote service    |    ❌    |                      |
+| `enable_rollback`           | Whether to enable automatic rollback if deployment fails (`true` / `false`) |    ❌    | `false`              |
+
+### SSH Host Key Verification
+
+By default, this tool verifies the SSH server's host key by comparing the server's fingerprint with a provided fingerprint.
+
+> [!WARNING]  
+> If you do not specify a fingerprint, the tool will **disable host key verification** by using `ssh.InsecureIgnoreHostKey()`. This is **insecure** and should **never** be used in production environments, as it leaves the connection vulnerable to man-in-the-middle attacks.
+
+> [!IMPORTANT]  
+> For secure deployments, always specify a fingerprint to ensure the server's identity is verified and protect against potential security risks.
+
+> [!TIP]  
+> **Future Updates:**  
+> I am actively working on improving security and future versions will offer better solutions for secure host key verification. Stay tuned for updates that will make the connection process even more secure and reliable.
+
+Make sure to provide the correct fingerprint in production to avoid security vulnerabilities.
 
 ## Supported Prune Types
 
@@ -96,11 +115,13 @@ This action ensures the required Docker network exists before deploying. If it i
 ### Network scenarios
 
 A network will be created if:
+
 - The specified network does not exist.
 - A custom network is defined via `docker_network`.
 - The provided driver is valid and supported.
 
 Warnings will be displayed if:
+
 - The existing network's driver does not match the one specified.
 - Swarm mode is inactive but `overlay` is requested in `stack` mode.
 
@@ -119,6 +140,7 @@ This action supports automatic rollback if a deployment fails to start correctly
 ### How it works
 
 - In `stack` mode:
+
   - Docker Swarm’s built-in rollback is used.
   - The command `docker service update --rollback <service-name>` is run to revert services in the stack to the last working state.
 
@@ -130,11 +152,13 @@ This action supports automatic rollback if a deployment fails to start correctly
 ### Rollback triggers
 
 Rollback will occur if:
+
 - Services fail health checks.
 - Containers immediately exit after starting.
 - Docker returns an error during service startup.
 
 Rollback will not occur if:
+
 - The deployment succeeds but the application has internal errors.
 - A service is manually stopped by the user.
 - Rollback is disabled via `enable_rollback: false`.
@@ -185,7 +209,7 @@ jobs:
           ssh_key: ${{ secrets.SSH_KEY }}
           project_path: /opt/myapp
           deploy_file: docker-compose.yml
-          extra_files: .env,database.env,nginx.conf  
+          extra_files: .env,database.env,nginx.conf
           mode: compose
           docker_network: myapp_network
           docker_network_driver: bridge
@@ -224,7 +248,7 @@ jobs:
 
 ## Contributing
 
-Contributions are welcome. If you would like to improve this action, please feel free to open a pull request or raise an issue. We appreciate your input.
+Contributions are welcome. If you would like to improve this action, please feel free to open a pull request or raise an issue. I appreciate your input.
 
 ## License
 

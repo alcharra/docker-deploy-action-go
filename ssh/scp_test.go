@@ -8,9 +8,9 @@ import (
 )
 
 func TestUploadFileSCP_Positive(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("failed to create SSH client: %v", err)
 	}
@@ -40,9 +40,9 @@ func TestUploadFileSCP_Positive(t *testing.T) {
 }
 
 func TestUploadFileSCP_InvalidFile(t *testing.T) {
-	host, port, user, key := getSSHEnv(t)
+	cfg := getTestConfig(t)
 
-	client, err := NewClient(host, port, user, key)
+	client, err := NewClient(cfg)
 	if err != nil {
 		t.Fatalf("failed to create SSH client: %v", err)
 	}
