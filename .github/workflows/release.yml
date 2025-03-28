@@ -18,7 +18,7 @@ jobs:
           go-version: 'stable'
 
       - name: Build binary for Linux
-        run: GOOS=linux GOARCH=amd64 go build -o deploy-action_linux ./deploy.go
+        run: GOOS=linux GOARCH=amd64 go build -o deploy-action_linux ./main.go
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
