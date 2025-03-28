@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  go-test:
+    name: Go Unit Testing
     runs-on: ubuntu-latest
 
     steps:
