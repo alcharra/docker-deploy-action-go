@@ -78,10 +78,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Run Docker Deploy (Go)
-      shell: bash
+    - name: Download Linux Binary from Release
       run: |
-        ${GITHUB_ACTION_PATH}/docker-deploy-action
+        curl -L -o deploy-action-linux https://github.com/alcharra/docker-deploy-action-go/releases/download/${{ github.event.release.tag_name }}/deploy-action_linux
+        chmod +x deploy-action-linux
+        ./deploy-action-linux
       env:
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_PORT: ${{ inputs.ssh_port }}
