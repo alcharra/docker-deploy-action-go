@@ -79,8 +79,9 @@ runs:
   using: "composite"
   steps:
     - name: Download Linux Binary from Release
+      shell: bash
       run: |
-        curl -L -o deploy-action-linux https://github.com/alcharra/docker-deploy-action-go/releases/download/${{ github.event.release.tag_name }}/deploy-action_linux
+        curl -L -o deploy-action-linux https://github.com/your-username/your-repo/releases/download/${{ github.event.release.tag_name }}/deploy-action_linux
         chmod +x deploy-action-linux
         ./deploy-action-linux
       env:
