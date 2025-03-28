@@ -6,27 +6,27 @@ services:
     ports:
       - "8080:80"
     networks:
-      - test_network
+      - test_network_compose
     environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
+      - NGINX_HOST=${NGINX_HOST}
+      - NGINX_PORT=${NGINX_PORT}
 
   db:
     image: mysql:latest
     container_name: test_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test_db
-      MYSQL_USER: test_user
-      MYSQL_PASSWORD: test_password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - test_network
+      - test_network_compose
 
 networks:
-  test_network:
+  test_network_compose:
     driver: bridge
 
 volumes:

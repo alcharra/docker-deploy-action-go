@@ -1,8 +1,11 @@
 # 🐳 Docker Deploy Action (Go)
 
-[![Run Tests](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/test.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/test.yml)
+[![Run Tests](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/go-test.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/go-test.yml)
 [![GitHub tag](https://img.shields.io/github/tag/alcharra/docker-deploy-action-go.svg)](https://github.com/alcharra/docker-deploy-action-go/releases)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/alcharra/docker-deploy-action-go)](https://golang.org/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alcharra/docker-deploy-action-go)](https://goreportcard.com/report/github.com/alcharra/docker-deploy-action-go)
+[![CodeQL](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml)
+[![Deploy Test](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/deploy-test.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/deploy-test.yml)
 
 A **reliable and efficient GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** services over SSH.
 
