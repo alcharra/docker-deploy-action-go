@@ -22,13 +22,16 @@ inputs:
   ssh_key_passphrase:
     description: "Passphrase for the encrypted SSH private key"
     required: false
+  ssh_known_hosts:
+    description: "Contents of the SSH known_hosts file used to verify the server's host key."
+    required: false
+  fingerprint:
+    description: "The SSH host fingerprint used to verify the server's identity (SHA256 format)."
+    required: false
   timeout:
     description: "SSH connection timeout (e.g. 10s, 30s, 1m)."
     required: false
     default: "10s"
-  fingerprint:
-    description: "The SSH host fingerprint used to verify the server's identity (SHA256 format)."
-    required: false
   project_path:
     description: "The remote directory on the server where files should be uploaded."
     required: true
@@ -89,8 +92,9 @@ runs:
         SSH_USER: ${{ inputs.ssh_user }}
         SSH_KEY: ${{ inputs.ssh_key }}
         SSH_KEY_PASSPHRASE: ${{ inputs.ssh_key_passphrase }}
-        TIMEOUT: ${{ inputs.timeout }}
+        SSH_KNOWN_HOSTS: ${{ inputs.ssh_known_hosts }}
         FINGERPRINT: ${{ inputs.fingerprint }}
+        TIMEOUT: ${{ inputs.timeout }}
         PROJECT_PATH: ${{ inputs.project_path }}
         DEPLOY_FILE: ${{ inputs.deploy_file }}
         EXTRA_FILES: ${{ inputs.extra_files }}
