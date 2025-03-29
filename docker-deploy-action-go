@@ -4,8 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# RELEASE_VERSION="${RELEASE_VERSION:-${GITHUB_ACTION_PATH##*/}}"
-RELEASE_VERSION="${RELEASE_VERSION:-}"
+RELEASE_VERSION="${RELEASE_VERSION:-${GITHUB_ACTION_PATH##*/}}"
 
 if [[ ! "$RELEASE_VERSION" =~ ^v[0-9]+(\.[0-9]+)*$ ]]; then
   echo "❌ ERROR: Action must be used with a version tag like @v1.2.3 or @v1"
