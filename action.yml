@@ -83,7 +83,7 @@ runs:
       run: ${{ github.action_path }}/docker-deploy-action-go
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
-        GITHUB_ACTION_REF: ${{ github.ref_name }}
+        GITHUB_ACTION_REF: ${{ github.event.release.tag_name }}
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_PORT: ${{ inputs.ssh_port }}
         SSH_USER: ${{ inputs.ssh_user }}
