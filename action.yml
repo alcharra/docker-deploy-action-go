@@ -49,6 +49,10 @@ inputs:
   stack_name:
     description: "The name of the stack to deploy (required if mode is set to 'stack')."
     required: false
+  compose_pull:
+    description: "Whether to pull the latest images before bringing up services with Docker Compose (true/false)."
+    required: false
+    default: "true"
   docker_network:
     description: "The name of the network to be used for deployment (created if it does not exist)."
     required: false
@@ -101,6 +105,7 @@ runs:
         DOCKER_PRUNE: ${{ inputs.docker_prune }}
         MODE: ${{ inputs.mode }}
         STACK_NAME: ${{ inputs.stack_name }}
+        COMPOSE_PULL: ${{ inputs.compose_pull }}
         DOCKER_NETWORK: ${{ inputs.docker_network }}
         DOCKER_NETWORK_DRIVER: ${{ inputs.docker_network_driver }}
         DOCKER_NETWORK_ATTACHABLE: ${{ inputs.docker_network_attachable }}
