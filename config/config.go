@@ -20,6 +20,7 @@ func LoadConfig() DeployConfig {
 		ExtraFiles:          splitEnv("EXTRA_FILES"),
 		Mode:                getEnv("MODE", "compose"),
 		StackName:           getEnv("STACK_NAME", ""),
+		ComposePull:         getEnv("COMPOSE_PULL", "true") == "true",
 		DockerNetwork:       getEnv("DOCKER_NETWORK", ""),
 		DockerNetworkDriver: getEnv("DOCKER_NETWORK_DRIVER", "bridge"),
 		DockerNetworkAttach: getEnv("DOCKER_NETWORK_ATTACHABLE", "false") == "true",

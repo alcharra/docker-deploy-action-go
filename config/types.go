@@ -14,6 +14,7 @@ type DeployConfig struct {
 	ExtraFiles          []string
 	Mode                string
 	StackName           string
+	ComposePull         bool
 	DockerNetwork       string
 	DockerNetworkDriver string
 	DockerNetworkAttach bool

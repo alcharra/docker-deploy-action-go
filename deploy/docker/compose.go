@@ -18,6 +18,7 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 	cmd := fmt.Sprintf(`
 		PROJECT_PATH="%s"
 		ENABLE_ROLLBACK="%t"
+		COMPOSE_PULL="%t"
 
 		echo "🐳 Deploying using Docker Compose"
 
@@ -32,7 +33,12 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 
 		cd "$PROJECT_PATH" || { echo "❌ Failed to cd into $PROJECT_PATH"; exit 1; }
 
-		$COMPOSE pull &&
+		if [ "$COMPOSE_PULL" = "true" ]; then
+			$COMPOSE pull || { echo "❌ Failed to pull images"; exit 1; }
+		else
+			echo "⏩ Skipping image pull"
+		fi
+
 		$COMPOSE down &&
 		$COMPOSE up -d
 
@@ -68,11 +74,11 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 			else
 				echo "⚠️ Rollback is disabled"
 			fi
-		exit 1
+			exit 1
 		else
 			echo "✅ All services are running"
 		fi
-	`, projectPath, cfg.EnableRollback)
+	`, projectPath, cfg.EnableRollback, cfg.ComposePull)
 
 	err := client.RunCommandStreamed(cmd)
 	if err != nil {
