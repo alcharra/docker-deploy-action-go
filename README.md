@@ -189,6 +189,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Example 1: Deploy using Docker Stack
       - name: Deploy using Docker Stack
         uses: alcharra/docker-deploy-action-go@v1
         with:
@@ -223,6 +224,7 @@ jobs:
           registry_user: ${{ github.actor }}
           registry_pass: ${{ secrets.GITHUB_TOKEN }}
 
+      # Example 2: Deploy using Docker Compose
       - name: Deploy using Docker Compose
         uses: alcharra/docker-deploy-action-go@v1
         with:
