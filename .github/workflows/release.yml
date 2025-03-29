@@ -1,4 +1,4 @@
-name: Build and Release Linux Binary
+name: Build and Release Cross-Platform Binaries
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,12 +18,47 @@ jobs:
         with:
           go-version: 'stable'
 
-      - name: Build binary for Linux
-        run: GOOS=linux GOARCH=amd64 go build -o deploy-action_linux ./main.go
+      - name: Build binaries for all platforms
+        run: |
+          mkdir -p dist
 
-      - name: Create GitHub Release
+          VERSION="${GITHUB_REF#refs/tags/}"
+
+          platforms=(
+            "windows/amd64"
+            "windows/386"
+            "linux/amd64"
+            "linux/386"
+            "linux/arm64"
+            "linux/arm/v7"
+            "linux/arm/v6"
+            "linux/arm/v5"
+            "freebsd/amd64"
+            "darwin/amd64"
+            "darwin/arm64"
+          )
+
+          for platform in "${platforms[@]}"; do
+            IFS="/" read -r GOOS GOARCH VARIANT <<< "$platform"
+
+            filename="deploy-action_${GOOS}_${GOARCH}"
+            [[ -n "$VARIANT" ]] && filename="${filename}${VARIANT}"
+            filename="${filename}_$VERSION"
+            [[ "$GOOS" == "windows" ]] && filename="${filename}.exe"
+
+            echo "Building: $filename (GOOS=$GOOS, GOARCH=$GOARCH, GOARM=$VARIANT)"
+
+            if [[ "$GOARCH" == "arm" && -n "$VARIANT" ]]; then
+              GOARM="${VARIANT#v}"
+              GOOS=$GOOS GOARCH=$GOARCH GOARM=$GOARM go build -o "dist/${filename}" ./main.go
+            else
+              GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/${filename}" ./main.go
+            fi
+          done
+
+      - name: Upload binaries to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: deploy-action_linux
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

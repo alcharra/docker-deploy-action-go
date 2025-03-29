@@ -4,23 +4,39 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-
-echo "DEBUG: GITHUB_ACTION_REF=${GITHUB_ACTION_REF:-<empty>}"
-
-GITHUB_ACTION_PATH="${GITHUB_ACTION_PATH%/}"
-RELEASE_VERSION="${GITHUB_ACTION_REF:-}"
-BINARY_NAME="deploy-action_linux"
-
+RELEASE_VERSION="${RELEASE_VERSION:-}"
 if [[ -z "$RELEASE_VERSION" ]]; then
   echo "❌ GITHUB_ACTION_REF is empty. Falling back to 'v1'."
   RELEASE_VERSION="v1"
 fi
 
-RELEASE_URL="https://github.com/alcharra/docker-deploy-action-go/releases/download/${RELEASE_VERSION}/${BINARY_NAME}"
-TARGET="${GITHUB_ACTION_PATH}/${BINARY_NAME}"
+REPO="alcharra/docker-deploy-action-go"
+GITHUB_ACTION_PATH="${GITHUB_ACTION_PATH%/}"
 
-curl -fsSL --retry 5 "${RELEASE_URL}" -o "${TARGET}"
-chmod +x "${TARGET}"
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+VARIANT=""
 
-"${TARGET}" "$@"
-rm -f "${TARGET}"
+case "$ARCH" in
+  x86_64 | amd64) ARCH="amd64" ;;
+  i386 | i686)    ARCH="386" ;;
+  armv5*)         ARCH="arm"; VARIANT="v5" ;;
+  armv6*)         ARCH="arm"; VARIANT="v6" ;;
+  armv7*)         ARCH="arm"; VARIANT="v7" ;;
+  armv8* | aarch64) ARCH="arm64" ;;
+  *) echo "❌ Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+FILENAME="deploy-action_${OS}_${ARCH}"
+[[ -n "$VARIANT" ]] && FILENAME="${FILENAME}${VARIANT}"
+FILENAME="${FILENAME}_v${RELEASE_VERSION}"
+[[ "$OS" == "windows" ]] && FILENAME="${FILENAME}.exe"
+
+URL="https://github.com/${REPO}/releases/download/v${RELEASE_VERSION}/${FILENAME}"
+TARGET="${GITHUB_ACTION_PATH}/${FILENAME}"
+
+curl -fsSL --retry 5 --keepalive-time 2 "$URL" -o "$TARGET"
+chmod +x "$TARGET"
+
+"$TARGET" "$@"
+rm -f "$TARGET"
