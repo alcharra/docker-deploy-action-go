@@ -57,8 +57,9 @@ This speed gain comes from running a single compiled binary without shell overhe
 | `ssh_user`                  | Username used for the SSH connection                                        |    ✅    |                      |
 | `ssh_key`                   | Private SSH key for authentication                                          |    ✅    |                      |
 | `ssh_key_passphrase`        | Passphrase for the encrypted SSH private key                                |    ❌    |                      |
-| `timeout`                   | SSH connection timeout (e.g. `10s`, `30s`, `1m`)                            |    ❌    | `10s`                |
+| `ssh_known_hosts`           | Contents of the SSH `known_hosts` file used to verify the server's identity |    ❌    |                      |
 | `fingerprint`               | SSH host fingerprint for verifying the server's identity (SHA256 format)    |    ❌    |                      |
+| `timeout`                   | SSH connection timeout (e.g. `10s`, `30s`, `1m`)                            |    ❌    | `10s`                |
 | `project_path`              | Path on the server where files will be uploaded                             |    ✅    |                      |
 | `deploy_file`               | Path to the file used for defining the deployment (e.g. Docker Compose)     |    ✅    | `docker-compose.yml` |
 | `extra_files`               | Additional files to upload (e.g. `.env`, config files)                      |    ❌    |                      |
@@ -73,21 +74,27 @@ This speed gain comes from running a single compiled binary without shell overhe
 | `registry_pass`             | Password or token for authenticating with the registry or remote service    |    ❌    |                      |
 | `enable_rollback`           | Whether to enable automatic rollback if deployment fails (`true` / `false`) |    ❌    | `false`              |
 
-### SSH Host Key Verification
+## SSH Host Key Verification
 
-By default, this tool verifies the SSH server's host key by comparing the server's fingerprint with a provided fingerprint.
+This tool supports two secure options for verifying the SSH server's identity:
+
+- Using a `known_hosts` file (OpenSSH-compatible)
+- Providing the server's SHA256 fingerprint
+
+You only need to provide one of these options — not both.
 
 > [!WARNING]  
-> If you do not specify a fingerprint, the tool will **disable host key verification** by using `ssh.InsecureIgnoreHostKey()`. This is **insecure** and should **never** be used in production environments, as it leaves the connection vulnerable to man-in-the-middle attacks.
+> If neither `ssh_known_hosts` nor `fingerprint` is specified, the tool will fall back to `ssh.InsecureIgnoreHostKey()`.  
+> This disables host key verification and leaves your connection vulnerable to man-in-the-middle attacks.  
+> Never use this configuration in production environments.
 
 > [!IMPORTANT]  
-> For secure deployments, always specify a fingerprint to ensure the server's identity is verified and protect against potential security risks.
+> For secure deployments, always provide either a known_hosts entry or a fingerprint to verify the server’s identity and prevent impersonation.
 
 > [!TIP]  
-> **Future Updates:**  
-> I am actively working on improving security and future versions will offer better solutions for secure host key verification. Stay tuned for updates that will make the connection process even more secure and reliable.
-
-Make sure to provide the correct fingerprint in production to avoid security vulnerabilities.
+> Use `ssh_known_hosts` for compatibility with OpenSSH and support for multiple key types.  
+> Use `fingerprint` for a simpler, one-line setup in single-host environments.  
+> In either case, store the value securely using a GitHub environment variable or secret.
 
 ## Supported Prune Types
 

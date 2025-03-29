@@ -6,8 +6,9 @@ type DeployConfig struct {
 	SSHUser             string
 	SSHKey              string
 	SSHKeyPassphrase    string
-	Timeout             string
+	SSHKnownHosts       string
 	Fingerprint         string
+	Timeout             string
 	ProjectPath         string
 	DeployFile          string
 	ExtraFiles          []string

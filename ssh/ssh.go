@@ -11,6 +11,7 @@ import (
 
 	"github.com/alcharra/docker-deploy-action-go/config"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 func NewClient(cfg config.DeployConfig) (*Client, error) {
@@ -32,7 +33,25 @@ func NewClient(cfg config.DeployConfig) (*Client, error) {
 	}
 
 	var hostKeyCallback ssh.HostKeyCallback
-	if cfg.Fingerprint != "" {
+
+	switch {
+	case cfg.SSHKnownHosts != "":
+		tmpFile, err := os.CreateTemp("", "known_hosts")
+		if err != nil {
+			return nil, fmt.Errorf("failed to create temp known_hosts file: %w", err)
+		}
+		defer tmpFile.Close()
+
+		if _, err := tmpFile.WriteString(cfg.SSHKnownHosts); err != nil {
+			return nil, fmt.Errorf("failed to write to temp known_hosts file: %w", err)
+		}
+
+		hostKeyCallback, err = knownhosts.New(tmpFile.Name())
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse known_hosts content: %w", err)
+		}
+
+	case cfg.Fingerprint != "":
 		expected := strings.TrimSpace(cfg.Fingerprint)
 		hostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			actual := ssh.FingerprintSHA256(key)
@@ -41,7 +60,9 @@ func NewClient(cfg config.DeployConfig) (*Client, error) {
 			}
 			return nil
 		}
-	} else {
+
+	default:
+		fmt.Fprintln(os.Stderr, "WARNING: using insecure host key verification (InsecureIgnoreHostKey)")
 		hostKeyCallback = ssh.InsecureIgnoreHostKey()
 	}
 
