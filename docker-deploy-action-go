@@ -5,8 +5,14 @@ set -o nounset
 set -o pipefail
 
 GITHUB_ACTION_PATH="${GITHUB_ACTION_PATH%/}"
-RELEASE_VERSION="${GITHUB_ACTION_REF}"
+RELEASE_VERSION="${GITHUB_ACTION_REF:-}"
 BINARY_NAME="deploy-action_linux"
+
+if [[ -z "$RELEASE_VERSION" ]]; then
+  echo "❌ GITHUB_ACTION_REF is empty. Falling back to 'v1'."
+  RELEASE_VERSION="v1"
+fi
+
 RELEASE_URL="https://github.com/alcharra/docker-deploy-action-go/releases/download/${RELEASE_VERSION}/${BINARY_NAME}"
 TARGET="${GITHUB_ACTION_PATH}/${BINARY_NAME}"
 
