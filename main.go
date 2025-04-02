@@ -7,7 +7,6 @@ import (
 	"github.com/alcharra/docker-deploy-action-go/deploy"
 	"github.com/alcharra/docker-deploy-action-go/deploy/docker"
 	"github.com/alcharra/docker-deploy-action-go/deploy/files"
-	"github.com/alcharra/docker-deploy-action-go/utils"
 )
 
 func main() {
@@ -17,11 +16,10 @@ func main() {
 	defer client.Close()
 
 	files.CheckOrCreateRemotePath(client, cfg)
-	localFiles := utils.CollectFiles(cfg)
-
 	files.BackupDeploymentFiles(client, cfg)
-	files.UploadFiles(client, cfg.ProjectPath, localFiles)
-	files.CheckFilesExistRemote(client, cfg.ProjectPath, localFiles)
+
+	uploadedFiles := files.UploadFiles(client, cfg)
+	files.CheckFilesExistRemote(client, cfg.ProjectPath, uploadedFiles)
 
 	docker.CheckDockerInstalled(client)
 	docker.EnsureDockerNetwork(client, cfg)

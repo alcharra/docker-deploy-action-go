@@ -32,6 +32,7 @@ func LoadConfig() DeployConfig {
 		RegistryUser:          getEnv("REGISTRY_USER", ""),
 		RegistryPass:          getEnv("REGISTRY_PASS", ""),
 		EnableRollback:        getEnv("ENABLE_ROLLBACK", "false") == "true",
+		EnvVars:               getEnv("ENV_VARS", ""),
 	}
 }
 

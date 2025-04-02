@@ -77,6 +77,7 @@ This speed gain comes from running a single compiled binary without shell overhe
 | `registry_user`             | Username for authenticating with the registry or remote service                                      |    ❌    |                      |
 | `registry_pass`             | Password or token for authenticating with the registry or remote service                             |    ❌    |                      |
 | `enable_rollback`           | Whether to enable automatic rollback if deployment fails (`true` / `false`)                          |    ❌    | `false`              |
+| `env_vars`                  | Environment variables to write to a `.env` file and upload to the server                             |    ❌    |                      |
 
 ## SSH Host Key Verification
 
@@ -239,8 +240,14 @@ jobs:
           deploy_file: docker-compose.yml
           mode: compose
 
+          # Environment Variables 
+          env_vars: |
+            DB_HOST=localhost
+            DB_USER=myuser
+            DB_PASS=${{ secrets.DB_PASS }}
+
           # Additional Files
-          extra_files: .env,database.env,nginx.conf # Upload environment and config files
+          extra_files: database.env,nginx.conf                  # Upload environment and config files
 
           # Compose Behaviour
           compose_pull: true # Pull latest images before up

@@ -31,7 +31,7 @@ func BackupDeploymentFiles(client *ssh.Client, cfg config.DeployConfig) {
 			cp "%[2]s" "%[1]s/"
 			echo "✅ Backed up main file: '%[3]s'"
 		else
-			echo "⚠️ Main deployment file '%[3]s' not found – skipping"
+			echo "⚠️ Main deployment file '%[3]s' not found - skipping"
 		fi
 	`, backupDir, mainFilePath, mainFile)
 
@@ -45,7 +45,7 @@ func BackupDeploymentFiles(client *ssh.Client, cfg config.DeployConfig) {
 			cp "%[1]s" "%[2]s/"
 			echo "✅ Backed up extra file: '%[3]s'"
 		else
-			echo "⚠️ Extra file '%[3]s' not found – skipping"
+			echo "⚠️ Extra file '%[3]s' not found - skipping"
 		fi
 		`, filePath, backupDir, fileName)
 	}

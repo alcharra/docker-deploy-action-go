@@ -26,4 +26,5 @@ type DeployConfig struct {
 	RegistryUser          string
 	RegistryPass          string
 	EnableRollback        bool
+	EnvVars               string
 }

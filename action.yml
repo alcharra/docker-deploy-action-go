@@ -92,6 +92,9 @@ inputs:
     description: "Whether to enable automatic rollback if the deployment fails (true/false)."
     required: false
     default: "false"
+  env_vars:
+    description: "Environment variables to write to a .env file and upload to the server."
+    required: false
 
 runs:
   using: "composite"
@@ -127,3 +130,4 @@ runs:
         REGISTRY_USER: ${{ inputs.registry_user }}
         REGISTRY_PASS: ${{ inputs.registry_pass }}
         ENABLE_ROLLBACK: ${{ inputs.enable_rollback }}
+        ENV_VARS: ${{ inputs.env_vars }}
