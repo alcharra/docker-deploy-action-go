@@ -11,18 +11,18 @@ import (
 
 func DockerRegistryLogin(client *ssh.Client, cfg config.DeployConfig) {
 	if cfg.RegistryHost == "" || cfg.RegistryUser == "" || cfg.RegistryPass == "" {
-		fmt.Println("⏭️ Skipping container registry login - credentials not provided")
+		fmt.Println("⏭️ Skipping registry login - credentials not provided")
 		return
 	}
 
 	cmd := fmt.Sprintf(`
-		echo "🔑 Logging into container registry: %s"
+		echo "🔑 Attempting to log in to container registry: %s"
 		echo "%s" | docker login "%s" -u "%s" --password-stdin
 	`, cfg.RegistryHost, cfg.RegistryPass, cfg.RegistryHost, cfg.RegistryUser)
 
 	stdout, stderr, err := client.RunCommandBuffered(cmd)
 	if err != nil {
-		log.Fatalf("❌ Docker registry login failed: %v\nStderr: %s", err, stderr)
+		log.Fatalf("❌ Registry login failed: %v\nDetails: %s", err, stderr)
 	}
 
 	fmt.Println(strings.TrimSpace(stdout))

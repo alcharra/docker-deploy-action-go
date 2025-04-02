@@ -62,10 +62,13 @@ This speed gain comes from running a single compiled binary without shell overhe
 | `timeout`                   | SSH connection timeout (e.g. `10s`, `30s`, `1m`)                                                     |    ❌    | `10s`                |
 | `project_path`              | Path on the server where files will be uploaded                                                      |    ✅    |                      |
 | `deploy_file`               | Path to the file used for defining the deployment (e.g. Docker Compose)                              |    ✅    | `docker-compose.yml` |
-| `extra_files`               | Additional files to upload (e.g. `.env`, config files)                                               |    ❌    |                      |
+| `extra_files`               | Comma-separated list of additional files to upload (e.g. .env, config.yml)                           |    ❌    |                      |
 | `mode`                      | Deployment mode (`compose` or `stack`)                                                               |    ❌    | `compose`            |
 | `stack_name`                | Stack name used during Swarm deployment (required if mode is `stack`)                                |    ❌    |                      |
 | `compose_pull`              | Whether to pull the latest images before bringing up services with Docker Compose (`true` / `false`) |    ❌    | `true`               |
+| `compose_build`             | Whether to build images before starting services with Docker Compose (`true` / `false`)              |    ❌    | `false`              |
+| `compose_no_deps`           | Whether to skip starting linked services (dependencies) with Docker Compose (`true` / `false`)       |    ❌    | `false`              |
+| `compose_target_services`   | Comma-separated list of services to restart (e.g. web,db) - Restarts all if unset                    |    ❌    |                      |
 | `docker_network`            | Name of the Docker network to be used or created if missing                                          |    ❌    |                      |
 | `docker_network_driver`     | Driver for the network (`bridge`, `overlay`, `macvlan`, etc.)                                        |    ❌    | `bridge`             |
 | `docker_network_attachable` | Whether standalone containers can attach to the network (`true` / `false`)                           |    ❌    | `false`              |
@@ -90,7 +93,7 @@ You only need to provide one of these options — not both.
 > Never use this configuration in production environments.
 
 > [!IMPORTANT]  
-> For secure deployments, always provide either a known_hosts entry or a fingerprint to verify the server’s identity and prevent impersonation.
+> For secure deployments, always provide either a `known_hosts` entry or a `fingerprint` to verify the server’s identity and prevent impersonation.
 
 > [!TIP]  
 > Use `ssh_known_hosts` for compatibility with OpenSSH and support for multiple key types.  
@@ -99,12 +102,12 @@ You only need to provide one of these options — not both.
 
 ## Supported Prune Types
 
-- `none` – No pruning (default)
-- `system` – Remove unused images, containers, volumes and networks
-- `volumes` – Remove unused volumes
-- `networks` – Remove unused networks
-- `images` – Remove unused images
-- `containers` – Remove stopped containers
+- `none` - No pruning (default)
+- `system` - Remove unused images, containers, volumes and networks
+- `volumes` - Remove unused volumes
+- `networks` - Remove unused networks
+- `images` - Remove unused images
+- `containers` - Remove stopped containers
 
 ## Network Management
 
@@ -186,81 +189,74 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📦 Checkout repository
         uses: actions/checkout@v4
 
-      # Example 1: Deploy using Docker Stack
-      - name: Deploy using Docker Stack
+      # 🐳 Example 1: Deploy using Docker Stack (Swarm Mode)
+      - name: 🚀 Deploy using Docker Stack
         uses: alcharra/docker-deploy-action-go@v1
         with:
-          # Required SSH configuration
-          ssh_host: ${{ secrets.SSH_HOST }}              # Hostname or IP address of the target server
-          ssh_user: ${{ secrets.SSH_USER }}              # SSH username
-          ssh_key: ${{ secrets.SSH_KEY }}                # Private SSH key for authentication
-          project_path: /opt/myapp                       # Remote path where project files will be uploaded
+          # SSH Connection
+          ssh_host: ${{ secrets.SSH_HOST }} # Remote server IP or hostname
+          ssh_user: ${{ secrets.SSH_USER }} # SSH username
+          ssh_key: ${{ secrets.SSH_KEY }} # Private SSH key
+          ssh_key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }} # (Optional) SSH key passphrase
+          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }} # (Optional) known_hosts entry
 
-          # Deployment configuration
-          deploy_file: docker-stack.yml                  # Path to the Docker Stack file
-          mode: stack                                    # Deployment mode
-          stack_name: myapp                              # Name of the Docker stack to deploy
+          # Deployment Settings
+          project_path: /opt/myapp # Remote directory for upload and deploy
+          deploy_file: docker-stack.yml # Stack file to deploy
+          mode: stack # Deployment mode: 'stack'
+          stack_name: myapp # Stack name on the target host
 
-          # Optional SSH security settings
-          ssh_key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}   # Passphrase for the SSH key, if encrypted
-          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}         # SSH known_hosts contents to verify server identity
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}             # SSH host fingerprint for additional verification
+          # Additional Files
+          extra_files: traefik.yml # Upload additional files (e.g. configs)
 
-          # Additional files to include in the deployment
-          extra_files: traefik.yml                  # Comma-separated list of extra files to upload
+          # Docker Network Settings
+          docker_network: myapp_network # Network name to use or create
+          docker_network_driver: overlay # Network driver (e.g. bridge, overlay)
 
-          # Docker network configuration
-          docker_network: myapp_network                  # Name of the Docker network to use
-          docker_network_driver: overlay                 # Driver for the Docker network
+          # Post-Deployment Cleanup
+          docker_prune: system # Prune unused Docker resources
 
-          # Cleanup after deployment
-          docker_prune: system                           # Type of Docker prune to perform
-
-          # Registry authentication (for pulling private images)
+          # Registry Authentication
           registry_host: ghcr.io
           registry_user: ${{ github.actor }}
           registry_pass: ${{ secrets.GITHUB_TOKEN }}
 
-      # Example 2: Deploy using Docker Compose
-      - name: Deploy using Docker Compose
+      # 🐳 Example 2: Deploy using Docker Compose
+      - name: 🚀 Deploy using Docker Compose
         uses: alcharra/docker-deploy-action-go@v1
         with:
-          # Required SSH configuration
-          ssh_host: ${{ secrets.SSH_HOST }}              # Hostname or IP address of the target server
-          ssh_user: ${{ secrets.SSH_USER }}              # SSH username
-          ssh_key: ${{ secrets.SSH_KEY }}                # Private SSH key for authentication
-          project_path: /opt/myapp                       # Remote path where project files will be uploaded
+          # SSH Connection
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }} # (Optional) SHA256 host fingerprint
 
-          # Deployment configuration
-          deploy_file: docker-compose.yml                # Path to the Docker Compose file
-          mode: compose                                  # Deployment mode
+          # Deployment Settings
+          project_path: /opt/myapp
+          deploy_file: docker-compose.yml
+          mode: compose
 
-          # Optional SSH security settings
-          ssh_key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}   # Passphrase for the SSH key, if encrypted
-          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}         # SSH known_hosts contents to verify server identity
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}             # SSH host fingerprint for additional verification
+          # Additional Files
+          extra_files: .env,database.env,nginx.conf # Upload environment and config files
 
-          # Additional files to include in the deployment
-          extra_files: .env,database.env,nginx.conf      # Comma-separated list of extra files to upload
+          # Compose Behaviour
+          compose_pull: true # Pull latest images before up
+          compose_build: true # Build images before starting services
+          compose_no_deps: true # Don’t start linked services
+          compose_target_services: web,db # Restart only selected services (optional)
 
-          # Deployment behaviour
-          compose_pull: true                             # Pull the latest images before starting services
-          enable_rollback: true                          # Enable rollback if deployment fails
+          # Rollback Support
+          enable_rollback: true # Automatically rollback on failure
 
-          # Docker network configuration
-          docker_network: myapp_network                  # Name of the Docker network to use
-          docker_network_driver: bridge                  # Driver for the Docker network
+          # Docker Network
+          docker_network: myapp_network
+          docker_network_driver: bridge
 
-          # Cleanup after deployment
-          docker_prune: system                           # Type of Docker prune to perform
-
-          # Registry authentication (for pulling private images)
-          registry_host: docker.io
-          registry_user: ${{ secrets.DOCKER_USERNAME }}
-          registry_pass: ${{ secrets.DOCKER_PASSWORD }}
+          # Post-Deployment Cleanup
+          docker_prune: volumes
 ```
 
 ## Requirements on the Server
@@ -282,7 +278,7 @@ jobs:
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [Docker Swarm Documentation](https://docs.docker.com/engine/swarm/)
 - [Docker Prune Documentation](https://docs.docker.com/config/pruning/)
-- [Docker Documentation](https://docs.docker.com/network/)
+- [Docker Network Documentation](https://docs.docker.com/network/)
 
 ## Tips for Maintainers
 
@@ -293,6 +289,13 @@ jobs:
 ## Contributing
 
 Contributions are welcome. If you would like to improve this action, please feel free to open a pull request or raise an issue. I appreciate your input.
+
+## Feature Requests
+
+Have an idea or need something this action doesn't support yet?  
+Please [start a discussion](https://github.com/alcharra/docker-deploy-action-go/discussions/new?category=ideas) under the **Ideas** category.
+
+This helps keep feature requests organised and visible to others who may want the same thing.
 
 ## License
 

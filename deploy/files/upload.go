@@ -10,7 +10,7 @@ import (
 )
 
 func UploadFiles(client *ssh.Client, remoteDir string, files []string) {
-	fmt.Printf("📂 Uploading files to %s:\n", remoteDir)
+	fmt.Printf("📂 Uploading files to remote directory: %s\n", remoteDir)
 
 	for _, file := range files {
 		remotePath := path.Join(remoteDir, filepath.Base(file))
@@ -18,8 +18,8 @@ func UploadFiles(client *ssh.Client, remoteDir string, files []string) {
 		fmt.Printf("📦 Uploading: %s → %s\n", file, remotePath)
 		err := client.UploadFileSCP(file, remotePath)
 		if err != nil {
-			log.Fatalf("❌ Failed to upload %s: %v", file, err)
+			log.Fatalf("❌ Failed to upload '%s': %v", file, err)
 		}
-		fmt.Printf("✅ Uploaded: %s → %s\n", file, remotePath)
+		fmt.Printf("✅ Successfully uploaded: %s → %s\n", file, remotePath)
 	}
 }

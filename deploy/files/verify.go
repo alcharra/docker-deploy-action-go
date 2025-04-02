@@ -16,18 +16,18 @@ func CheckFilesExistRemote(client *ssh.Client, projectPath string, files []strin
 		remotePath := path.Join(projectPath, filename)
 
 		cmd := fmt.Sprintf(`
-		PATH="%s"
-		if [ ! -f "$PATH" ]; then
-			echo '❌ Missing file after upload: %s'
+		FILE_PATH="%s"
+		if [ ! -f "$FILE_PATH" ]; then
+			echo "❌ File missing after upload: $FILE_PATH"
 			exit 1
 		else
-			echo '✅ File verified: %s'
+			echo "✅ Verified file exists: $FILE_PATH"
 		fi
-		`, remotePath, remotePath, remotePath)
+		`, remotePath)
 
 		stdout, stderr, err := client.RunCommandBuffered(cmd)
 		if err != nil {
-			log.Fatalf("❌ Remote file check failed for %s: %v\nStderr: %s", filename, err, stderr)
+			log.Fatalf("❌ Remote file check failed for '%s': %v\nDetails: %s", filename, err, stderr)
 		}
 
 		fmt.Println(strings.TrimSpace(stdout))

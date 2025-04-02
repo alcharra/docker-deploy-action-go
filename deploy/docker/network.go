@@ -20,31 +20,30 @@ func EnsureDockerNetwork(client *ssh.Client, cfg config.DeployConfig) {
 		MODE="%s"
 		ATTACHABLE="%t"
 
-		echo "🌐 Ensuring network $NETWORK exists"
+		echo "🌐 Checking if Docker network '$NETWORK' exists"
 
 		if [ -z "$DRIVER" ]; then
-			echo "❌ DOCKER_NETWORK_DRIVER is not set!"
+			echo "❌ Network driver is not set"
 			exit 1
 		fi
 
 		if docker network inspect "$NETWORK" > /dev/null 2>&1; then
-			echo "✅ Network $NETWORK exists. Checking driver..."
+			echo "✅ Network '$NETWORK' already exists - verifying driver..."
 
 			EXISTING_DRIVER=$(docker network inspect --format '{{ .Driver }}' "$NETWORK")
 
 			if [ "$EXISTING_DRIVER" != "$DRIVER" ]; then
-				echo "⚠️ Network $NETWORK exists but uses driver '$EXISTING_DRIVER' instead of '$DRIVER'"
-				echo "🚨 Consider deleting and recreating the network manually."
+				echo "⚠️ Network '$NETWORK' is using driver '$EXISTING_DRIVER', expected '$DRIVER'"
+				echo "ℹ️ Consider removing and recreating it to avoid unexpected behaviour"
 			else
-				echo "✅ Network driver matches expected: $DRIVER"
+				echo "✅ Driver matches expected: '$DRIVER'"
 			fi
 		else
-			echo "🔧 Creating $NETWORK network with driver $DRIVER"
+			echo "🔧 Creating network '$NETWORK' with driver '$DRIVER'"
 
-			# Swarm warning if overlay + stack
 			if [ "$DRIVER" = "overlay" ] && [ "$MODE" = "stack" ] && ! docker info | grep -q 'Swarm: active'; then
-				echo "⚠️ Swarm mode is not active. Overlay networks need Swarm for multi-node communication."
-				echo "ℹ️ It will still work in single-node mode as a bridge."
+				echo "⚠️ Swarm mode is not active - overlay networks require Swarm for multi-node setups"
+				echo "ℹ️ The network will still work in single-node mode as a bridge"
 			fi
 
 			CREATE_CMD="docker network create --driver $DRIVER"
@@ -59,9 +58,9 @@ func EnsureDockerNetwork(client *ssh.Client, cfg config.DeployConfig) {
 			$CREATE_CMD "$NETWORK"
 
 			if docker network inspect "$NETWORK" > /dev/null 2>&1; then
-				echo "✅ Network $NETWORK successfully created"
+				echo "✅ Network '$NETWORK' created successfully"
 			else
-				echo "❌ Network creation failed for $NETWORK!"
+				echo "❌ Failed to create network '$NETWORK'"
 				exit 1
 			fi
 		fi
@@ -69,7 +68,7 @@ func EnsureDockerNetwork(client *ssh.Client, cfg config.DeployConfig) {
 
 	stdout, stderr, err := client.RunCommandBuffered(cmd)
 	if err != nil {
-		log.Fatalf("❌ Failed to ensure Docker network: %v\nStderr: %s", err, stderr)
+		log.Fatalf("❌ Could not ensure Docker network: %v\nStderr: %s", err, stderr)
 	}
 
 	fmt.Println(strings.TrimSpace(stdout))
