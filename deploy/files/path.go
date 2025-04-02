@@ -15,25 +15,25 @@ func CheckOrCreateRemotePath(client *ssh.Client, cfg config.DeployConfig) {
 		SSH_USER="%s"
 
 		if [ ! -d "$PROJECT_PATH" ]; then
-			echo '📁 Project path not found - creating it...'
+			echo "📁 Project path not found - creating directory..."
 			mkdir -p "$PROJECT_PATH"
 			chown "$SSH_USER":"$SSH_USER" "$PROJECT_PATH"
 			chmod 750 "$PROJECT_PATH"
 
 			if [ ! -d "$PROJECT_PATH" ]; then
-				echo '❌ Failed to create project path!'
+				echo "❌ Failed to create the project directory at '$PROJECT_PATH'"
 				exit 1
 			fi
 
-			echo '✅ Project path created and verified.'
+			echo "✅ Project directory created and verified"
 		else
-			echo '✅ Project path already exists.'
+			echo "✅ Project directory already exists"
 		fi
 	`, cfg.ProjectPath, cfg.SSHUser)
 
 	stdout, stderr, err := client.RunCommandBuffered(cmd)
 	if err != nil {
-		log.Fatalf("❌ Failed to check/create project path: %v\nStderr: %s", err, stderr)
+		log.Fatalf("❌ Unable to ensure project path: %v\nDetails: %s", err, stderr)
 	}
 
 	fmt.Println(strings.TrimSpace(stdout))

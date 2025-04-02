@@ -9,11 +9,13 @@ import (
 )
 
 func ConnectToSSH(cfg config.DeployConfig) *ssh.Client {
-	fmt.Println("🚀 Connecting to remote server...")
+	fmt.Println("🚀 Connecting to the remote server...")
+
 	client, err := ssh.NewClient(cfg)
 	if err != nil {
-		log.Fatalf("❌ SSH connection failed: %v\n", err)
+		log.Fatalf("❌ Unable to establish SSH connection: %v\n", err)
 	}
-	fmt.Println("✅ SSH connection established.")
+
+	fmt.Println("✅ SSH connection established successfully")
 	return client
 }

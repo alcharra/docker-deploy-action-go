@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test Docker Deploy Action - Compose
-        uses: alcharra/docker-deploy-action@v2
+        uses: alcharra/docker-deploy-action-go@v1
         with:
           ssh_host: ${{ secrets.TEST_SSH_HOST }}
           ssh_user: ${{ secrets.TEST_SSH_USER }}
@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test Docker Deploy Action - Stack
-        uses: alcharra/docker-deploy-action@v2
+        uses: alcharra/docker-deploy-action-go@v1
         with:
           ssh_host: ${{ secrets.TEST_SSH_HOST }}
           ssh_user: ${{ secrets.TEST_SSH_USER }}
