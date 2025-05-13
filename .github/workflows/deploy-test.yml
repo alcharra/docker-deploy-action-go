@@ -5,8 +5,6 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  release:
-    types: [created, published, prereleased]
 
 jobs:
   deploy-compose:
@@ -27,6 +25,9 @@ jobs:
           deploy_file: ./tests/compose/docker-compose.yml
           extra_files: ./tests/compose/.env
           mode: compose
+          registry_host: ${{ secrets.REGISTRY_HOST }}
+          registry_user: ${{ secrets.REGISTRY_USER }}
+          registry_pass: ${{ secrets.REGISTRY_PASS }}
           docker_network: test_network_compose
           docker_network_driver: bridge
           docker_prune: system
@@ -50,8 +51,16 @@ jobs:
           deploy_file: ./tests/stack/docker-stack.yml
           extra_files: ./tests/stack/redis.conf,./tests/stack/nginx.conf
           mode: stack
+          registry_host: ${{ secrets.REGISTRY_HOST }}
+          registry_user: ${{ secrets.REGISTRY_USER }}
+          registry_pass: ${{ secrets.REGISTRY_PASS }}
           stack_name: test_stack
           docker_network: test_network_stack
           docker_network_driver: overlay
           docker_prune: system
           enable_rollback: true
+          env_vars: |
+            POSTGRES_DB=app_db
+            POSTGRES_USER=user
+            POSTGRES_PASSWORD=password
+            WEB_PORT=8080
