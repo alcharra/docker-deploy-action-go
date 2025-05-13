@@ -8,19 +8,18 @@ services:
       restart_policy:
         condition: on-failure
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     networks:
       - test_network_stack
 
   db:
-    image: mysql:latest
+    image: postgres:latest
     environment:
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: app_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     deploy:
       placement:
         constraints: [node.role == manager]

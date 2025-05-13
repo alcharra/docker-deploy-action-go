@@ -96,9 +96,6 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 				else
 					echo "⚠️ No backup found"
 				fi
-
-				echo "🧼 Cleaning up backup files"
-				rm -rf .backup_* 2>/dev/null || true
 			else
 				echo "⚠️ Rollback is disabled"
 			fi
@@ -107,6 +104,8 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 		else
 			echo "✅ All services are running"
 		fi
+
+		rm -rf .backup_* 2>/dev/null || true
 	`, projectPath, cfg.EnableRollback, cfg.ComposePull, upCmd)
 
 	err := client.RunCommandStreamed(cmd)

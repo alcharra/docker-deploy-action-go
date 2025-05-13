@@ -35,6 +35,13 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 			exit 1
 		fi
 
+		if [ -f ".env" ]; then
+			echo "📄 Loading environment variables from .env"
+			set -a
+			source .env
+			set +a
+		fi
+
 		echo "⚓ Deploying stack '$STACK' using Docker Swarm"
 		docker stack deploy -c "%s" "$STACK" --with-registry-auth --detach=false
 
