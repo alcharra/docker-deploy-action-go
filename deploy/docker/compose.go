@@ -62,9 +62,13 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 		fi
 
 		echo "🧪 Validating Compose file"
-		if ! $COMPOSE config > /dev/null; then
+		
+		if ! VALIDATION_OUTPUT=$($COMPOSE config 2>&1 > /dev/null); then
 			echo "❌ Compose file validation failed"
+			echo "🔍 Reason: $VALIDATION_OUTPUT"
 			exit 1
+		else
+			echo "✅ Compose file is valid"
 		fi
 
 		if [ "$COMPOSE_PULL" = "true" ]; then

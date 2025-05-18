@@ -52,6 +52,7 @@ FILENAME="deploy-action_${OS}_${ARCH}"
 if [ -n "$VARIANT" ]; then
   FILENAME="${FILENAME}${VARIANT}"
 fi
+
 FILENAME="${FILENAME}_${RELEASE_VERSION}"
 if [ "$OS" = "windows" ]; then
   FILENAME="${FILENAME}.exe"
