@@ -2,13 +2,54 @@ name: Go Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
-  go-test:
-    name: Go Unit Testing
+  unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Run unit tests
+        run: go test -tags=unit ./... -v
+
+  e2e:
+    name: E2E Deploy (${{ matrix.mode }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        mode: [compose, stack]
+        include:
+          - mode: compose
+            deploy_file: ./tests/compose/docker-compose.yml
+            project_path: /home/${{ secrets.TEST_SSH_USER }}/test/compose
+            extra_files: ./tests/compose/.env
+            docker_network: test_network_compose
+            docker_network_driver: bridge
+            stack_name: ""
+            env_vars: ""
+
+          - mode: stack
+            deploy_file: ./tests/stack/docker-stack.yml
+            project_path: /home/${{ secrets.TEST_SSH_USER }}/test/stack
+            extra_files: ./tests/stack/redis.conf,./tests/stack/nginx.conf
+            docker_network: test_network_stack
+            docker_network_driver: overlay
+            stack_name: test_stack
+            env_vars: |
+              POSTGRES_DB=app_db
+              POSTGRES_USER=user
+              POSTGRES_PASSWORD=password
+              WEB_PORT=8080
 
     steps:
       - name: Checkout code
@@ -17,7 +58,25 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'stable' 
+          go-version: 'stable'
 
-      - name: Run tests
-        run: go test ./... -v
+      - name: Build deploy binary
+        run: go build -o deploy-action ./main.go
+
+      - name: Run E2E Deploy Test
+        run: go test -tags=e2e ./tests -v
+        env:
+          MODE: ${{ matrix.mode }}
+          SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
+          SSH_USER: ${{ secrets.TEST_SSH_USER }}
+          SSH_KEY: ${{ secrets.TEST_SSH_KEY }}
+          REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
+          DEPLOY_FILE: ${{ matrix.deploy_file }}
+          PROJECT_PATH: ${{ matrix.project_path }}
+          EXTRA_FILES: ${{ matrix.extra_files }}
+          DOCKER_NETWORK: ${{ matrix.docker_network }}
+          DOCKER_NETWORK_DRIVER: ${{ matrix.docker_network_driver }}
+          STACK_NAME: ${{ matrix.stack_name }}
+          ENV_VARS: ${{ matrix.env_vars }}
