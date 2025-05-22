@@ -47,9 +47,9 @@ jobs:
           REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
-          DEPLOY_FILE: ./tests/compose/docker-compose.yml
+          DEPLOY_FILE: ./tests/testdata/compose/docker-compose.yml
           PROJECT_PATH: /home/${{ secrets.TEST_SSH_USER }}/test/compose
-          EXTRA_FILES: ./tests/compose/.env
+          EXTRA_FILES: ./tests/testdata/compose/.env
           DOCKER_NETWORK: test_network_compose
           DOCKER_NETWORK_DRIVER: bridge
     
@@ -63,9 +63,9 @@ jobs:
           REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
-          DEPLOY_FILE: ./tests/stack/docker-stack.yml
+          DEPLOY_FILE: ./tests/testdata/stack/docker-stack.yml
           PROJECT_PATH: /home/${{ secrets.TEST_SSH_USER }}/test/stack
-          EXTRA_FILES: ./tests/stack/redis.conf,./tests/stack/nginx.conf
+          EXTRA_FILES: ./tests/testdata/stack/redis.conf,./tests/testdata/stack/nginx.conf
           DOCKER_NETWORK: test_network_stack
           DOCKER_NETWORK_DRIVER: overlay
           STACK_NAME: test_stack
