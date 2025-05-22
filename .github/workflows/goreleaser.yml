@@ -9,15 +9,15 @@ permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup go
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -26,7 +26,6 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          distribution: goreleaser
           version: latest
           args: release --clean
         env:

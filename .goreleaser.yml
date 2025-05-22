@@ -1,3 +1,5 @@
+project_name: docker-deploy-action-go
+
 before:
   hooks:
     - go mod tidy
@@ -59,7 +61,7 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X main.Version={{.Version}}
+      - -X main.Version={{ .Version }}
     binary: >-
       {{ .ProjectName }}-
       {{- if .IsSnapshot }}{{ .Branch }}-
@@ -70,25 +72,21 @@ builds:
       {{- else if eq .Arch "386" }}386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}-{{ .Arm }}{{ end }}
-    no_unique_dist_dir: true
     hooks:
       post:
         - cmd: xz -k -9 {{ .Path }}
           dir: ./dist/
+    no_unique_dist_dir: true
 
 archives:
   - name_template: "{{ .Binary }}"
-    format_overrides:
-      - goos: windows
-        format: zip
-      - goos: linux
-        format: tar.gz
-      - goos: darwin
-        format: tar.gz
+    format: tar.gz
+    replacements:
+      windows: zip
     files:
-      - license*
       - README.md
-    allow_different_binary_count: true
+      - LICENSE
+      - entrypoint.sh
 
 checksum:
   name_template: "checksums.txt"

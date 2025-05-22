@@ -27,14 +27,20 @@ fi
 
 FILENAME="docker-deploy-action-go-${RELEASE_VERSION}-${OS}-${ARCH}"
 [ -n "$VARIANT" ] && FILENAME="${FILENAME}-${VARIANT}"
-[ "$OS" = "windows" ] && FILENAME="${FILENAME}.exe"
+ARCHIVE="${FILENAME}.tar.gz"
 
-TARGET="${GITHUB_ACTION_PATH}/${FILENAME}"
+URL="https://github.com/${REPO}/releases/download/${RELEASE_VERSION}/${ARCHIVE}"
 
-echo "📦 Downloading release binary: $FILENAME"
-URL="https://github.com/${REPO}/releases/download/${RELEASE_VERSION}/${FILENAME}"
-curl -fsSL --retry 5 --keepalive-time 2 "$URL" -o "$TARGET"
+echo "📦 Downloading from: $URL"
+curl -fsSL --retry 5 "$URL" -o "$ARCHIVE"
 
-chmod +x "$TARGET"
-"$TARGET" "$@"
-rm -f "$TARGET"
+echo "📦 Extracting binary..."
+tar -xzf "$ARCHIVE"
+chmod +x docker-deploy-action-go*
+
+echo "🚀 Running binary..."
+./docker-deploy-action-go* "$@"
+
+# Cleanup
+rm "$ARCHIVE"
+rm docker-deploy-action-go*
