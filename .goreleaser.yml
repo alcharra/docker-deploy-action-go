@@ -82,8 +82,9 @@ builds:
 archives:
   - name_template: "{{ .Binary }}"
     format: tar.gz
-    replacements:
-      windows: zip
+    format_overrides:
+      - goos: windows
+        format: zip
     files:
       - README.md
       - LICENSE
