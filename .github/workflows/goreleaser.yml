@@ -1,5 +1,3 @@
-name: Goreleaser
-
 on:
   push:
     tags:
@@ -17,11 +15,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Go
+      - name: Checkout the specific tag
+        run: git checkout ${{ github.ref_name }}
+
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          check-latest: true
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -31,4 +31,3 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
