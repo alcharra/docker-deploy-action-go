@@ -63,7 +63,7 @@ builds:
     binary: >-
       {{ .ProjectName }}-
       {{- if .IsSnapshot }}{{ .Branch }}-
-      {{- else }}{{- .Version }}-{{ end }}
+      {{- else }}{{ .Version }}-{{ end }}
       {{- .Os }}-
       {{- if eq .Arch "amd64" }}amd64
       {{- else if eq .Arch "amd64_v1" }}amd64
@@ -77,17 +77,26 @@ builds:
           dir: ./dist/
 
 archives:
-  - format: binary
-    name_template: "{{ .Binary }}"
+  - name_template: "{{ .Binary }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+      - goos: linux
+        format: tar.gz
+      - goos: darwin
+        format: tar.gz
+    files:
+      - license*
+      - README.md
     allow_different_binary_count: true
 
 checksum:
   name_template: "checksums.txt"
+  algorithm: sha256
   extra_files:
     - glob: ./**.xz
 
-snapshot:
-  name_template: "{{ incpatch .Version }}"
+snapshot: {}
 
 release:
   extra_files:
