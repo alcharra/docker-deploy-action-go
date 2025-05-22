@@ -25,7 +25,8 @@ if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+(\.[0-9]+)*$'; then
   exit 1
 fi
 
-FILENAME="docker-deploy-action-go-${RELEASE_VERSION}-${OS}-${ARCH}"
+VERSION_NO_V="${RELEASE_VERSION#v}"
+FILENAME="docker-deploy-action-go-${VERSION_NO_V}-${OS}-${ARCH}"
 [ -n "$VARIANT" ] && FILENAME="${FILENAME}-${VARIANT}"
 ARCHIVE="${FILENAME}.tar.gz"
 
