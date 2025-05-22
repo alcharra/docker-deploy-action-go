@@ -14,8 +14,6 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 		return
 	}
 
-	projectPath := cfg.ProjectPath
-
 	// Prepare flags for `docker compose up`
 	var upFlags []string
 	upFlags = append(upFlags, "-d")
@@ -58,11 +56,27 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 			exit 1
 		fi
 
-		cd "$PROJECT_PATH" || { echo "❌ Failed to change directory to $PROJECT_PATH"; exit 1; }
+		if ! cd "$PROJECT_PATH"; then
+			echo "❌ Failed to change directory to $PROJECT_PATH"
+			exit 1
+		fi
+
+		echo "🧪 Validating Compose file"
+
+		if ! VALIDATION_OUTPUT=$($COMPOSE config 2>&1); then
+			echo "❌ Compose file validation failed"
+			echo "🔍 Reason: $VALIDATION_OUTPUT"
+			exit 1
+		else
+			echo "✅ Compose file is valid"
+		fi
 
 		if [ "$COMPOSE_PULL" = "true" ]; then
 			echo "📥 Pulling latest images"
-			$COMPOSE pull || { echo "❌ Pull failed"; exit 1; }
+			if ! $COMPOSE pull; then
+				echo "❌ Pull failed"
+				exit 1
+			fi
 		else
 			echo "⏩ Skipping image pull"
 		fi
@@ -81,7 +95,9 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 
 				if [ -n "$LATEST_BACKUP" ]; then
 					echo "📦 Restoring backup from $LATEST_BACKUP"
-					cp "$LATEST_BACKUP"/* . || echo "❌ Failed to restore backup"
+					if ! cp "$LATEST_BACKUP"/* .; then
+						echo "❌ Failed to restore backup"
+					fi
 
 					echo "♻️ Re-deploying previous version"
 					$COMPOSE down
@@ -105,8 +121,11 @@ func DeployDockerCompose(client *ssh.Client, cfg config.DeployConfig) {
 			echo "✅ All services are running"
 		fi
 
-		rm -rf .backup_* 2>/dev/null || true
-	`, projectPath, cfg.EnableRollback, cfg.ComposePull, upCmd)
+		if ls .backup_* >/dev/null 2>&1; then
+			rm -rf .backup_*
+			echo "✅ Backup files removed"
+		fi
+	`, cfg.ProjectPath, cfg.EnableRollback, cfg.ComposePull, upCmd)
 
 	err := client.RunCommandStreamed(cmd)
 	if err != nil {

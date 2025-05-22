@@ -14,20 +14,18 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 		return
 	}
 
-	stack := cfg.StackName
-	projectPath := cfg.ProjectPath
-	rollback := cfg.EnableRollback
 	deployFile := path.Base(cfg.DeployFile)
 
 	cmd := fmt.Sprintf(`
 		STACK="%s"
 		PROJECT_PATH="%s"
 		ENABLE_ROLLBACK="%t"
+		ENV_VARS='%s'
 
-		cd "$PROJECT_PATH" || {
-			echo "❌ Unable to access project directory: $PROJECT_PATH"
+		if ! cd "$PROJECT_PATH"; then
+			echo "❌ Failed to change directory to $PROJECT_PATH"
 			exit 1
-		}
+		fi
 
 		if ! docker info | grep -q "Swarm: active"; then
 			echo "❌ Docker Swarm mode is not enabled"
@@ -35,7 +33,7 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 			exit 1
 		fi
 
-		if [ -f ".env" ]; then
+		if [ -f ".env" ] && [ -n "${ENV_VARS}" ]; then
 			echo "📄 Loading environment variables from .env"
 			set -a
 			source .env
@@ -43,9 +41,27 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 		fi
 
 		echo "⚓ Deploying stack '$STACK' using Docker Swarm"
-		docker stack deploy -c "%s" "$STACK" --with-registry-auth --detach=false
 
-		echo "🔍 Checking status of services in stack '$STACK'"
+		DEPLOY_OUTPUT=$(mktemp)
+
+		docker stack deploy -c "%s" "$STACK" --with-registry-auth --detach=false 2>&1 | tee "$DEPLOY_OUTPUT"
+
+		# Check for known critical issues
+		echo "🧪 Validating Stack file"
+		
+		if grep -Eqi "undefined volume|unsupported option|is not supported|no such file|error:" "$DEPLOY_OUTPUT"; then
+			echo "❌ Stack deployment failed: validation error detected"
+			echo "🔍 Reason:"
+			grep -Ei "undefined volume|unsupported option|is not supported|no such file|error:" "$DEPLOY_OUTPUT"
+			rm "$DEPLOY_OUTPUT"
+			exit 1
+		else
+			echo "✅ Stack file is valid"
+		fi
+
+		rm "$DEPLOY_OUTPUT"
+
+		echo "🔍 Verifying services in stack '$STACK'"
 
 		if ! docker service ls --filter "label=com.docker.stack.namespace=$STACK" | grep -v REPLICAS | grep -q " 0/"; then
 			echo "✅ All services in stack '$STACK' are running as expected"
@@ -57,15 +73,15 @@ func DeployDockerStack(client *ssh.Client, cfg config.DeployConfig) {
 				echo "🔄 Attempting to roll back failed services..."
 				for service in $(docker service ls --filter "label=com.docker.stack.namespace=$STACK" --format "{{.Name}}"); do
 					echo "↩️ Rolling back service: $service"
-					docker service update --rollback "$service" || echo "⚠️ Rollback failed for: $service"
+					if ! docker service update --rollback "$service"; then
+						echo "⚠️ Rollback failed for: $service"
+					fi
 				done
-			else
-				echo "⚠️ Rollback is disabled"
 			fi
 
 			exit 1
 		fi
-	`, stack, projectPath, rollback, deployFile)
+	`, cfg.StackName, cfg.ProjectPath, cfg.EnableRollback, cfg.EnvVars, deployFile)
 
 	err := client.RunCommandStreamed(cmd)
 	if err != nil {

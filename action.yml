@@ -101,7 +101,7 @@ runs:
   steps:
     - name: Run Docker Deploy (Go)
       shell: bash
-      run: ${{ github.action_path }}/docker-deploy-action-go
+      run: ${{ github.action_path }}/entrypoint.sh
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
         RELEASE_VERSION: ${{ github.action_ref }}
