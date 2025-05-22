@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean --set version=${{ github.ref_name }}
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
