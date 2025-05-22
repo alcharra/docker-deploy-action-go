@@ -101,6 +101,9 @@ checksum:
 snapshot: {}
 
 release:
+  overwrite: true
+  skip_upload_release_notes: true
+  skip_upload_changelog: true
   extra_files:
     - glob: ./**.xz
 
