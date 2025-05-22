@@ -81,22 +81,12 @@ builds:
 
 archives:
   - name_template: "{{ .Binary }}"
-    goos:
-      - windows
-    formats:
-      - zip
-    files:
-      - README.md
-      - LICENSE
-      - entrypoint.sh
-
-  - name_template: "{{ .Binary }}"
-    goos:
-      - linux
-      - darwin
-      - freebsd
     formats:
       - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
     files:
       - README.md
       - LICENSE
