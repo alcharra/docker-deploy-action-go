@@ -83,7 +83,8 @@ archives:
   - name_template: "{{ .Binary }}"
     goos:
       - windows
-    format: zip
+    formats:
+      - zip
     files:
       - README.md
       - LICENSE
@@ -94,7 +95,8 @@ archives:
       - linux
       - darwin
       - freebsd
-    format: tar.gz
+    formats:
+      - tar.gz
     files:
       - README.md
       - LICENSE
