@@ -1,7 +1,6 @@
-package ssh
+package client
 
 import (
-	"bytes"
 	"crypto/subtle"
 	"fmt"
 	"net"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/alcharra/docker-deploy-action-go/config"
+	"github.com/alcharra/docker-deploy-action-go/internal/logs"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
 )
@@ -25,10 +25,10 @@ func NewClient(cfg config.DeployConfig) (*Client, error) {
 		if _, ok := err.(*ssh.PassphraseMissingError); ok && cfg.SSHKeyPassphrase != "" {
 			signer, err = ssh.ParsePrivateKeyWithPassphrase(keyBytes, []byte(cfg.SSHKeyPassphrase))
 			if err != nil {
-				return nil, fmt.Errorf("failed to decrypt SSH key with passphrase: %w", err)
+				return nil, fmt.Errorf("failed to decrypt SSH key using passphrase: %w", err)
 			}
 		} else {
-			return nil, fmt.Errorf("failed to parse SSH key: %w", err)
+			return nil, fmt.Errorf("failed to parse SSH private key: %w", err)
 		}
 	}
 
@@ -38,48 +38,46 @@ func NewClient(cfg config.DeployConfig) (*Client, error) {
 	case cfg.SSHKnownHosts != "":
 		tmpFile, err := os.CreateTemp("", "known_hosts")
 		if err != nil {
-			return nil, fmt.Errorf("failed to create temp known_hosts file: %w", err)
+			return nil, fmt.Errorf("failed to create temporary known_hosts file: %w", err)
 		}
 		defer tmpFile.Close()
 
 		if _, err := tmpFile.WriteString(cfg.SSHKnownHosts); err != nil {
-			return nil, fmt.Errorf("failed to write to temp known_hosts file: %w", err)
+			return nil, fmt.Errorf("failed to write contents to known_hosts file: %w", err)
 		}
 
 		hostKeyCallback, err = knownhosts.New(tmpFile.Name())
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse known_hosts content: %w", err)
+			return nil, fmt.Errorf("failed to parse known_hosts data: %w", err)
 		}
 
-	case cfg.Fingerprint != "":
-		expected := strings.TrimSpace(cfg.Fingerprint)
+	case cfg.SSHFingerprint != "":
+		expected := strings.TrimSpace(cfg.SSHFingerprint)
 		hostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			actual := ssh.FingerprintSHA256(key)
 			if subtle.ConstantTimeCompare([]byte(actual), []byte(expected)) != 1 {
-				return fmt.Errorf("host key mismatch: got %s, want %s", actual, expected)
+				return fmt.Errorf("SSH host key mismatch – got %s, expected %s", actual, expected)
 			}
 			return nil
 		}
 
 	default:
-		fmt.Fprintln(os.Stderr, "WARNING: using insecure host key verification (InsecureIgnoreHostKey)")
+		logs.Warn("Host key verification is disabled (not recommended for production)")
 		hostKeyCallback = ssh.InsecureIgnoreHostKey()
 	}
 
 	timeout := 10 * time.Second
-	if cfg.Timeout != "" {
-		if parsed, err := time.ParseDuration(cfg.Timeout); err == nil {
+	if cfg.SSHTimeout != "" {
+		if parsed, err := time.ParseDuration(cfg.SSHTimeout); err == nil {
 			timeout = parsed
 		} else {
-			return nil, fmt.Errorf("invalid timeout duration: %w", err)
+			return nil, fmt.Errorf("invalid SSH timeout duration: %w", err)
 		}
 	}
 
 	clientConfig := &ssh.ClientConfig{
-		User: cfg.SSHUser,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
+		User:            cfg.SSHUser,
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
 		HostKeyCallback: hostKeyCallback,
 		Timeout:         timeout,
 	}
@@ -94,42 +92,20 @@ func NewClient(cfg config.DeployConfig) (*Client, error) {
 		Port:       cfg.SSHPort,
 		User:       cfg.SSHUser,
 		PrivateKey: cfg.SSHKey,
-		client:     conn,
+		sshClient:  conn,
 	}, nil
 }
 
-func (c *Client) RunCommandBuffered(cmd string) (string, string, error) {
-	session, err := c.client.NewSession()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to create session: %w", err)
+func (cli *Client) NewSession() (*ssh.Session, error) {
+	if cli.sshClient == nil {
+		return nil, fmt.Errorf("SSH client is not initialised")
 	}
-	defer session.Close()
-
-	var stdout, stderr bytes.Buffer
-	session.Stdout = &stdout
-	session.Stderr = &stderr
-
-	err = session.Run(cmd)
-	return stdout.String(), stderr.String(), err
+	return cli.sshClient.NewSession()
 }
 
-func (c *Client) RunCommandStreamed(cmd string) error {
-	session, err := c.client.NewSession()
-	if err != nil {
-		return fmt.Errorf("failed to create session: %w", err)
+func (cli *Client) Close() error {
+	if cli.sshClient == nil {
+		return nil
 	}
-	defer session.Close()
-
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
-
-	if err := session.Run(cmd); err != nil {
-		return fmt.Errorf("command failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c *Client) Close() error {
-	return c.client.Close()
+	return cli.sshClient.Close()
 }

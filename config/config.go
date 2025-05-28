@@ -1,10 +1,5 @@
 package config
 
-import (
-	"os"
-	"strings"
-)
-
 func LoadConfig() DeployConfig {
 	return DeployConfig{
 		SSHHost:               getEnv("SSH_HOST", ""),
@@ -13,42 +8,26 @@ func LoadConfig() DeployConfig {
 		SSHKey:                getEnv("SSH_KEY", ""),
 		SSHKeyPassphrase:      getEnv("SSH_KEY_PASSPHRASE", ""),
 		SSHKnownHosts:         getEnv("SSH_KNOWN_HOSTS", ""),
-		Fingerprint:           getEnv("FINGERPRINT", ""),
-		Timeout:               getEnv("TIMEOUT", "10s"),
+		SSHFingerprint:        getEnv("SSH_FINGERPRINT", ""),
+		SSHTimeout:            getEnv("SSH_TIMEOUT", "10s"),
 		ProjectPath:           getEnv("PROJECT_PATH", ""),
 		DeployFile:            getEnv("DEPLOY_FILE", "docker-compose.yml"),
 		ExtraFiles:            splitEnv("EXTRA_FILES"),
 		Mode:                  getEnv("MODE", "compose"),
 		StackName:             getEnv("STACK_NAME", ""),
-		ComposePull:           getEnv("COMPOSE_PULL", "true") == "true",
-		ComposeBuild:          getEnv("COMPOSE_BUILD", "false") == "true",
-		ComposeNoDeps:         getEnv("COMPOSE_NO_DEPS", "false") == "true",
+		ComposePull:           getBool("COMPOSE_PULL", true),
+		ComposeBuild:          getBool("COMPOSE_BUILD", false),
+		ComposeNoDeps:         getBool("COMPOSE_NO_DEPS", false),
 		ComposeTargetServices: splitEnv("COMPOSE_TARGET_SERVICES"),
 		DockerNetwork:         getEnv("DOCKER_NETWORK", ""),
 		DockerNetworkDriver:   getEnv("DOCKER_NETWORK_DRIVER", "bridge"),
-		DockerNetworkAttach:   getEnv("DOCKER_NETWORK_ATTACHABLE", "false") == "true",
+		DockerNetworkAttach:   getBool("DOCKER_NETWORK_ATTACHABLE", false),
 		DockerPrune:           getEnv("DOCKER_PRUNE", "none"),
 		RegistryHost:          getEnv("REGISTRY_HOST", ""),
 		RegistryUser:          getEnv("REGISTRY_USER", ""),
 		RegistryPass:          getEnv("REGISTRY_PASS", ""),
-		EnableRollback:        getEnv("ENABLE_ROLLBACK", "false") == "true",
+		EnableRollback:        getBool("ENABLE_ROLLBACK", false),
 		EnvVars:               getEnv("ENV_VARS", ""),
+		Verbose:               getBool("VERBOSE", false),
 	}
-}
-
-func splitEnv(key string) []string {
-	val := os.Getenv(key)
-
-	if val == "" {
-		return []string{}
-	}
-
-	return strings.Split(val, ",")
-}
-
-func getEnv(key, fallback string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return fallback
 }

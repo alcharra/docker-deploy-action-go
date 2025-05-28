@@ -5,6 +5,7 @@ set -o nounset
 set -o pipefail
 
 REPO="alcharra/docker-deploy-action-go"
+RELEASE_VERSION="${RELEASE_VERSION:-v2.0.0}"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH_RAW="$(uname -m)"
 ARCH="$ARCH_RAW"
@@ -35,13 +36,12 @@ URL="https://github.com/${REPO}/releases/download/${RELEASE_VERSION}/${ARCHIVE}"
 echo "📦 Downloading from: $URL"
 curl -fsSL --retry 5 "$URL" -o "$ARCHIVE"
 
-echo "📦 Extracting binary..."
+echo -e "\U0001F9F0 Extracting binary..."
 tar -xzf "$ARCHIVE"
 chmod +x docker-deploy-action-go*
 
-echo "🚀 Running binary..."
+echo -e "\U0001F680 Running docker-deploy-action-go version $RELEASE_VERSION..."
 ./docker-deploy-action-go* "$@"
 
-# Cleanup
 rm "$ARCHIVE"
 rm docker-deploy-action-go*

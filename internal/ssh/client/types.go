@@ -1,4 +1,4 @@
-package ssh
+package client
 
 import "golang.org/x/crypto/ssh"
 
@@ -7,5 +7,5 @@ type Client struct {
 	Port       string
 	User       string
 	PrivateKey string
-	client     *ssh.Client
+	sshClient  *ssh.Client
 }

@@ -7,9 +7,9 @@
 [![CodeQL](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml)
 [![GoDoc](https://godoc.org/github.com/alcharra/docker-deploy-action-go?status.svg)](https://godoc.org/github.com/alcharra/docker-deploy-action-go)
 
-A **reliable and efficient GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** services over SSH.
+A **fast and dependable GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** apps over SSH.  
 
-This action securely **uploads deployment files**, prepares the **remote environment** and automatically **provisions Docker networks** if needed. It supports **health checks, rollback** and optional **resource cleanup**, ensuring smooth and stable deployments with minimal hassle.
+It handles everything from **file uploads** and **network setup** to **health checks**, **rollback** and **clean-up** — so your deployments stay simple, safe, and consistent.
 
 ## Performance Comparison
 
@@ -49,135 +49,184 @@ This speed gain comes from running a single compiled binary without shell overhe
 
 ## Inputs
 
-| Input Parameter             | Description                                                                                          | Required | Default Value        |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- | :------: | -------------------- |
-| `ssh_host`                  | Hostname or IP address of the target server                                                          |    ✅    |                      |
-| `ssh_port`                  | Port used for the SSH connection                                                                     |    ❌    | `22`                 |
-| `ssh_user`                  | Username used for the SSH connection                                                                 |    ✅    |                      |
-| `ssh_key`                   | Private SSH key for authentication                                                                   |    ✅    |                      |
-| `ssh_key_passphrase`        | Passphrase for the encrypted SSH private key                                                         |    ❌    |                      |
-| `ssh_known_hosts`           | Contents of the SSH `known_hosts` file used to verify the server's identity                          |    ❌    |                      |
-| `fingerprint`               | SSH host fingerprint for verifying the server's identity (SHA256 format)                             |    ❌    |                      |
-| `timeout`                   | SSH connection timeout (e.g. `10s`, `30s`, `1m`)                                                     |    ❌    | `10s`                |
-| `project_path`              | Path on the server where files will be uploaded                                                      |    ✅    |                      |
-| `deploy_file`               | Path to the file used for defining the deployment (e.g. Docker Compose)                              |    ✅    | `docker-compose.yml` |
-| `extra_files`               | Comma-separated list of additional files to upload (e.g. .env, config.yml)                           |    ❌    |                      |
-| `mode`                      | Deployment mode (`compose` or `stack`)                                                               |    ❌    | `compose`            |
-| `stack_name`                | Stack name used during Swarm deployment (required if mode is `stack`)                                |    ❌    |                      |
-| `compose_pull`              | Whether to pull the latest images before bringing up services with Docker Compose (`true` / `false`) |    ❌    | `true`               |
-| `compose_build`             | Whether to build images before starting services with Docker Compose (`true` / `false`)              |    ❌    | `false`              |
-| `compose_no_deps`           | Whether to skip starting linked services (dependencies) with Docker Compose (`true` / `false`)       |    ❌    | `false`              |
-| `compose_target_services`   | Comma-separated list of services to restart (e.g. web,db) - Restarts all if unset                    |    ❌    |                      |
-| `docker_network`            | Name of the Docker network to be used or created if missing                                          |    ❌    |                      |
-| `docker_network_driver`     | Driver for the network (`bridge`, `overlay`, `macvlan`, etc.)                                        |    ❌    | `bridge`             |
-| `docker_network_attachable` | Whether standalone containers can attach to the network (`true` / `false`)                           |    ❌    | `false`              |
-| `docker_prune`              | Type of Docker resource prune to run after deployment                                                |    ❌    | `none`               |
-| `registry_host`             | Host address for the registry or remote service requiring authentication                             |    ❌    |                      |
-| `registry_user`             | Username for authenticating with the registry or remote service                                      |    ❌    |                      |
-| `registry_pass`             | Password or token for authenticating with the registry or remote service                             |    ❌    |                      |
-| `enable_rollback`           | Whether to enable automatic rollback if deployment fails (`true` / `false`)                          |    ❌    | `false`              |
-| `env_vars`                  | Environment variables to write to a `.env` file and upload to the server                             |    ❌    |                      |
+| Input Parameter             | Description                                                                             | Required | Default Value        |
+| --------------------------- | --------------------------------------------------------------------------------------- | :------: | -------------------- |
+| `ssh_host`                  | The hostname or IP address of the remote server you’re deploying to                     |    ✅    |                      |
+| `ssh_port`                  | The port used to connect via SSH                                                        |    ❌    | `22`                 |
+| `ssh_user`                  | The SSH username used to connect to the server                                          |    ✅    |                      |
+| `ssh_key`                   | Your private SSH key for authenticating with the server                                 |    ✅    |                      |
+| `ssh_key_passphrase`        | (If applicable) The passphrase used to unlock the SSH key                               |    ❌    |                      |
+| `ssh_known_hosts`           | The contents of your `known_hosts` file, used to verify the server’s identity           |    ❌    |                      |
+| `ssh_fingerprint`           | The server’s SSH fingerprint in SHA256 format (alternative to `known_hosts`)            |    ❌    |                      |
+| `ssh_timeout`               | SSH connection timeout duration (e.g. `10s`, `30s`, `1m`)                               |    ❌    | `10s`                |
+| `project_path`              | The full path on the server where files will be uploaded and deployed                   |    ✅    |                      |
+| `deploy_file`               | The name of your main deployment file (e.g. `docker-compose.yml` or `docker-stack.yml`) |    ✅    | `docker-compose.yml` |
+| `extra_files`               | A list of extra files or folders to upload. Use a multi-line format — one path per line |    ❌    |                      |
+| `mode`                      | Deployment method: either `compose` or `stack`                                          |    ❌    | `compose`            |
+| `stack_name`                | Name of the Docker stack (required if using `stack` mode)                               |    ❌    |                      |
+| `compose_pull`              | Pull the latest images before starting services (`true` or `false`)                     |    ❌    | `true`               |
+| `compose_build`             | Build images before starting services (`true` or `false`)                               |    ❌    | `false`              |
+| `compose_no_deps`           | Skip starting linked services (`true` or `false`)                                       |    ❌    | `false`              |
+| `compose_target_services`   | A list of specific services to restart. Use a multi-line format — one service per line  |    ❌    |                      |
+| `docker_network`            | The name of the Docker network to use or create if missing                              |    ❌    |                      |
+| `docker_network_driver`     | The network driver to use (`bridge`, `overlay`, etc.)                                   |    ❌    | `bridge`             |
+| `docker_network_attachable` | Allow standalone containers to attach to the network (`true` or `false`)                |    ❌    | `false`              |
+| `docker_prune`              | Type of Docker clean-up to run after deployment (e.g. `system`, `volumes`, `none`)      |    ❌    | `none`               |
+| `registry_host`             | The container registry hostname (e.g. `ghcr.io`) if login is required                   |    ❌    |                      |
+| `registry_user`             | Username for the registry                                                               |    ❌    |                      |
+| `registry_pass`             | Password or token for the registry                                                      |    ❌    |                      |
+| `enable_rollback`           | Automatically roll back if deployment fails (`true` or `false`)                         |    ❌    | `false`              |
+| `env_vars`                  | Environment variables to include in a `.env` file uploaded to the server                |    ❌    |                      |
+| `verbose`                   | Show extra internal command details and debug output (`true` or `false`)                |    ❌    | `false`              |
 
 ## SSH Host Key Verification
 
-This tool supports two secure options for verifying the SSH server's identity:
+To securely verify the identity of your SSH server, you can use **either** of the following:
 
-- Using a `known_hosts` file (OpenSSH-compatible)
-- Providing the server's SHA256 fingerprint
+- A `known_hosts` entry (compatible with OpenSSH)
+- A SHA256 `fingerprint` of the server's host key
 
-You only need to provide one of these options — not both.
-
-> [!WARNING]  
-> If neither `ssh_known_hosts` nor `fingerprint` is specified, the tool will fall back to `ssh.InsecureIgnoreHostKey()`.  
-> This disables host key verification and leaves your connection vulnerable to man-in-the-middle attacks.  
-> Never use this configuration in production environments.
+You only need to provide **one** — not both.
 
 > [!IMPORTANT]  
-> For secure deployments, always provide either a `known_hosts` entry or a `fingerprint` to verify the server’s identity and prevent impersonation.
+> If neither `ssh_known_hosts` nor `fingerprint` is set, the tool disables host key verification.  
+> This exposes your connection to man-in-the-middle attacks and is **not safe for production**.  
+> Always use one of the verification options and store it securely as a GitHub secret.
 
-> [!TIP]  
-> Use `ssh_known_hosts` for compatibility with OpenSSH and support for multiple key types.  
-> Use `fingerprint` for a simpler, one-line setup in single-host environments.  
-> In either case, store the value securely using a GitHub environment variable or secret.
+For most setups:
+
+- Use `known_hosts` if you're familiar with SSH or need compatibility with multiple key types.
+- Use `fingerprint` for a simpler, one-line setup — ideal for single-server use.
 
 ## Supported Prune Types
 
-- `none` - No pruning (default)
-- `system` - Remove unused images, containers, volumes and networks
-- `volumes` - Remove unused volumes
-- `networks` - Remove unused networks
-- `images` - Remove unused images
-- `containers` - Remove stopped containers
+You can choose what to clean up on the server after deployment by setting the `docker_prune` option. The following types are supported:
 
-## Network Management
+- `none` – No pruning (default)
+- `system` – Remove unused images, containers, volumes and networks
+- `volumes` – Remove unused volumes
+- `networks` – Remove unused networks
+- `images` – Remove unused images
+- `containers` – Remove stopped containers
 
-This action ensures the required Docker network exists before deploying. If it is missing, it will be created automatically using the specified driver.
+## Controlling Upload Paths
 
-### How it works
+By default, any file or folder listed under `extra_files` will be uploaded to the server **with its folder structure preserved**. For example, if you include `configs/settings.conf`, it will be uploaded to `project_path/configs/settings.conf`.
 
+If you want to upload a file **directly to the root of the deployment folder**, ignoring its original directory, you can use the `flatten` keyword before the path.
+
+### How It Works
+
+- Files are normally uploaded with their **relative path preserved** (default).
+- Prefix a path with `flatten` to upload the file(s) **directly into the root** of the `project_path`, removing any folders from the path.
+- Works with both **individual files** and **glob patterns** like `folder/*.env`.
+
+> [!NOTE]
+> If multiple files flatten to the same name, the action will throw an error to prevent overwriting. Always ensure flattened paths are unique.
+
+### Example
+
+```yaml
+extra_files: |
+  .env.production                  # → project-root/.env.production (preserved)
+  configs/*                        # → project-root/configs/*.*
+  flatten configs/*                # → project-root/*.*
+  flatten configs/db.env           # → project-root/db.env
+  configs/**/*.conf                # → project-root/configs/**.conf
+  flatten configs/**/*.conf        # → project-root/**.conf
+  flatten configs/legacy.conf      # → project-root/legacy.conf
+  scripts/init.sh                  # → project-root/scripts/init.sh
+  flatten scripts/init.sh          # → project-root/init.sh
+  assets/**/*                      # → project-root/assets/**/* (preserved structure)
+```
+
+### Best Practice
+
+- Use `flatten` **only when you need to remove the folder structure** from uploaded files.
+- Avoid flattening entire folders unless you are sure the filenames will not conflict.
+- Prefer preserved paths for most uploads to keep your deployment layout predictable and maintainable.
+
+## Docker Network Management
+
+This step ensures that the required Docker network exists before deployment begins. If it does not exist, it will be created automatically using the specified driver and relevant options.
+
+### How It Works
+
+- If `docker_network` is not set, this step is skipped.
 - If the network already exists, its driver is verified.
-- If the network does not exist, it is created using the provided driver.
-- If `docker_network_attachable` is set to `true`, the network is created with the `--attachable` flag.
-- In `stack` mode with the `overlay` driver:
-  - Swarm mode must be active on the target server.
-  - A warning is displayed if Swarm is not active.
-- If the existing network uses a different driver than specified, a warning is displayed.
+  - A warning is displayed if the driver does not match the expected value.
+- If the network does not exist, it is created using:
+  - A default driver if none is provided:
+    - `overlay` in `stack` mode
+    - `bridge` in all other modes
+  - Optional flags:
+    - `--attachable` if `docker_network_attachable: true`
+    - `--scope swarm` when using `overlay` in `stack` mode
 
-### Network scenarios
+> [!TIP]  
+> You do not need to specify the driver manually unless you want to override the defaults.
 
-A network will be created if:
-
-- The specified network does not exist.
-- A custom network is defined via `docker_network`.
-- The provided driver is valid and supported.
-
-Warnings will be displayed if:
-
-- The existing network's driver does not match the one specified.
-- Swarm mode is inactive but `overlay` is requested in `stack` mode.
-
-### Example usage
+### Example
 
 ```yaml
 docker_network: my_network
-docker_network_driver: overlay
 docker_network_attachable: true
+mode: stack
+# docker_network_driver: overlay  # Optional; defaults to 'overlay' in stack mode
 ```
 
 ## Rollback Behaviour
 
-This action supports automatic rollback if a deployment fails to start correctly.
+If something goes wrong during deployment, this action can automatically roll back to a previous working state.
 
-### How it works
+### How It Works
 
-- In `stack` mode:
+- **Compose mode**  
+  Before deployment, the full project folder is backed up.  
+  If containers fail to start, the backup is restored and deployment is retried automatically.
 
-  - Docker Swarm’s built-in rollback is used.
-  - The command `docker service update --rollback <service-name>` is run to revert services in the stack to the last working state.
+- **Stack mode**  
+  If any services fail to start or scale correctly, the tool attempts to roll back only the affected services using  
+  `docker service update --rollback`.
 
-- In `compose` mode:
-  - A backup of the current deployment file is created before deployment.
-  - If services fail to start, the backup is restored and Compose is re-deployed.
-  - If rollback is successful, the backup file is removed to avoid stale data.
+> [!NOTE]  
+> Rollback only runs if `enable_rollback` is set to `true`.  
+> If rollback is attempted but fails, the process stops with an error message.
 
-### Rollback triggers
+### When Rollback Happens
 
-Rollback will occur if:
+- Containers fail to start correctly in Compose mode
+- Services in the stack fail to reach their expected replica count
 
-- Services fail health checks.
-- Containers immediately exit after starting.
-- Docker returns an error during service startup.
+### When It Doesn’t
 
-Rollback will not occur if:
+Rollback will not trigger if:
 
-- The deployment succeeds but the application has internal errors.
-- A service is manually stopped by the user.
-- Rollback is disabled via `enable_rollback: false`.
+- The deployment fails, but the previous version is still running (e.g. the new one never started)
+- The app starts but has internal issues (e.g. logic errors or misconfiguration)
+- Services are stopped or altered manually outside of deployment
+- `enable_rollback` is set to `false`
 
-## Example Workflow
+### Example
 
 ```yaml
-name: Deploy
+enable_rollback: true
+mode: compose
+```
+
+or:
+
+```yaml
+enable_rollback: true
+mode: stack
+```
+
+## Example Workflows
+
+### 🚀 Deploy Using Docker Stack
+
+```yaml
+name: Deploy Stack
 
 on:
   push:
@@ -192,76 +241,84 @@ jobs:
       - name: 📦 Checkout repository
         uses: actions/checkout@v4
 
-      # Example 1: Deploy using Docker Stack
       - name: 🚀 Deploy using Docker Stack
-        uses: alcharra/docker-deploy-action-go@v1
+        uses: alcharra/docker-deploy-action-go@v2
         with:
-          # SSH Connection
-          ssh_host: ${{ secrets.SSH_HOST }} # Remote server IP or hostname
-          ssh_user: ${{ secrets.SSH_USER }} # SSH username
-          ssh_key: ${{ secrets.SSH_KEY }} # Private SSH key
-          ssh_key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }} # (Optional) SSH key passphrase
-          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }} # (Optional) known_hosts entry
-
-          # Deployment Settings
-          project_path: /opt/myapp # Remote directory for upload and deploy
-          deploy_file: docker-stack.yml # Stack file to deploy
-          mode: stack # Deployment mode: 'stack'
-          stack_name: myapp # Stack name on the target host
-
-          # Additional Files
-          extra_files: traefik.yml # Upload additional files (e.g. configs)
-
-          # Docker Network Settings
-          docker_network: myapp_network # Network name to use or create
-          docker_network_driver: overlay # Network driver (e.g. bridge, overlay)
-
-          # Post-Deployment Cleanup
-          docker_prune: system # Prune unused Docker resources
-
-          # Registry Authentication
-          registry_host: ghcr.io
-          registry_user: ${{ github.actor }}
-          registry_pass: ${{ secrets.GITHUB_TOKEN }}
-
-      # Example 2: Deploy using Docker Compose
-      - name: 🚀 Deploy using Docker Compose
-        uses: alcharra/docker-deploy-action-go@v1
-        with:
-          # SSH Connection
           ssh_host: ${{ secrets.SSH_HOST }}
           ssh_user: ${{ secrets.SSH_USER }}
           ssh_key: ${{ secrets.SSH_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }} # (Optional) SHA256 host fingerprint
+          ssh_key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-          # Deployment Settings
+          project_path: /opt/myapp
+          deploy_file: docker-stack.yml
+          mode: stack
+          stack_name: myapp
+
+          extra_files: |
+            traefik.yml
+
+          docker_network: myapp_network
+          docker_network_driver: overlay
+
+          docker_prune: system
+
+          registry_host: ghcr.io
+          registry_user: ${{ github.actor }}
+          registry_pass: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### 🐳 Deploy Using Docker Compose
+
+```yaml
+name: Deploy Compose
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy using Docker Compose
+        uses: alcharra/docker-deploy-action-go@v2
+        with:
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
           project_path: /opt/myapp
           deploy_file: docker-compose.yml
           mode: compose
 
-          # Environment Variables 
           env_vars: |
             DB_HOST=localhost
             DB_USER=myuser
             DB_PASS=${{ secrets.DB_PASS }}
 
-          # Additional Files
-          extra_files: database.env,nginx.conf                  # Upload environment and config files
+          extra_files: |
+            database.env
+            nginx.conf
 
-          # Compose Behaviour
-          compose_pull: true # Pull latest images before up
-          compose_build: true # Build images before starting services
-          compose_no_deps: true # Don’t start linked services
-          compose_target_services: web,db # Restart only selected services (optional)
+          compose_pull: true
+          compose_build: true
+          compose_no_deps: true
+          compose_target_services: |
+            web
+            db
 
-          # Rollback Support
-          enable_rollback: true # Automatically rollback on failure
+          enable_rollback: true
 
-          # Docker Network
           docker_network: myapp_network
           docker_network_driver: bridge
 
-          # Post-Deployment Cleanup
           docker_prune: volumes
 ```
 
@@ -298,7 +355,7 @@ Contributions are welcome. If you would like to improve this action, please feel
 
 ## Feature Requests
 
-Have an idea or need something this action doesn't support yet?  
+Have an idea or need something this action doesn't support yet?
 Please [start a discussion](https://github.com/alcharra/docker-deploy-action-go/discussions/new?category=ideas) under the **Ideas** category.
 
 This helps keep feature requests organised and visible to others who may want the same thing.
@@ -306,3 +363,4 @@ This helps keep feature requests organised and visible to others who may want th
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+````

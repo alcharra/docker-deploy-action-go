@@ -7,95 +7,99 @@ branding:
 
 inputs:
   ssh_host:
-    description: "The target server's hostname or IP address."
+    description: "The hostname or IP address of the remote server you're deploying to."
     required: true
   ssh_port:
-    description: "The port to use for the SSH connection."
+    description: "The port used to connect via SSH."
     required: false
     default: "22"
   ssh_user:
-    description: "The username used to establish the SSH connection."
+    description: "The SSH username used to connect to the server."
     required: true
   ssh_key:
-    description: "The private SSH key used to authenticate the connection."
+    description: "Your private SSH key for authenticating with the server."
     required: true
   ssh_key_passphrase:
-    description: "Passphrase for the encrypted SSH private key"
+    description: "(If applicable) The passphrase used to unlock the SSH key."
     required: false
   ssh_known_hosts:
-    description: "Contents of the SSH known_hosts file used to verify the server's host key."
+    description: "The contents of your `known_hosts` file, used to verify the server's identity."
     required: false
-  fingerprint:
-    description: "The SSH host fingerprint used to verify the server's identity (SHA256 format)."
+  ssh_fingerprint:
+    description: "The server's SSH fingerprint in SHA256 format (alternative to `known_hosts`)."
     required: false
-  timeout:
-    description: "SSH connection timeout (e.g. 10s, 30s, 1m)."
+  ssh_timeout:
+    description: "SSH connection timeout duration (e.g. `10s`, `30s`, `1m`)."
     required: false
     default: "10s"
   project_path:
-    description: "The remote directory on the server where files should be uploaded."
+    description: "The full path on the server where files will be uploaded and deployed."
     required: true
   deploy_file:
-    description: "The path to the file used to define the deployment (e.g. Docker Compose or Stack file)."
+    description: "The name of your main deployment file (e.g. `docker-compose.yml` or `docker-stack.yml`)."
     required: true
     default: "docker-compose.yml"
   extra_files:
-    description: "Comma-separated list of additional files to upload (e.g. .env, config.yml)."
+    description: "A list of extra files or folders to upload. Use a multi-line format — one path per line."
     required: false
   mode:
-    description: "The deployment mode to use (e.g. 'compose' or 'stack')."
+    description: "Deployment method: either `compose` or `stack`."
     required: false
     default: "compose"
   stack_name:
-    description: "The name of the stack to deploy (required if mode is set to 'stack')."
+    description: "Name of the Docker stack (required if using `stack` mode)."
     required: false
   compose_pull:
-    description: "Whether to pull the latest images before bringing up services with Docker Compose (true/false)."
+    description: "Pull the latest images before starting services (`true` or `false`)."
     required: false
     default: "true"
   compose_build:
-    description: "Whether to build images before starting services with Docker Compose (true/false)."
+    description: "Build images before starting services (`true` or `false`)."
     required: false
     default: "false"
   compose_no_deps:
-    description: "Whether to skip starting linked services (dependencies) with Docker Compose (true/false)."
+    description: "Skip starting linked services (`true` or `false`)."
     required: false
     default: "false"
   compose_target_services:
-    description: "Comma-separated list of services to restart (e.g. web,db) - Restarts all if unset."
+    description: "A list of specific services to restart. Use a multi-line format — one service per line."
     required: false
   docker_network:
-    description: "The name of the network to be used for deployment (created if it does not exist)."
+    description: "The name of the Docker network to use or create if missing."
     required: false
   docker_network_driver:
-    description: "The driver to use for the network (e.g. bridge, overlay, macvlan)."
+    description: "The network driver to use (`bridge`, `overlay`, etc.)."
     required: false
     default: "bridge"
   docker_network_attachable:
-    description: "Whether standalone containers should be allowed to attach to the network (true/false)."
+    description: "Allow standalone containers to attach to the network (`true` or `false`)."
     required: false
     default: "false"
   docker_prune:
-    description: "Specify a prune option to clean up unused resources: system, volumes, networks, images, containers, or none."
+    description: "Type of Docker clean-up to run after deployment (e.g. `system`, `volumes`, `none`)."
     required: false
     default: "none"
   registry_host:
-    description: "The host address for the remote registry or service requiring authentication."
-    required: true
+    description: "The container registry hostname (e.g. `ghcr.io`) if login is required."
+    required: false
   registry_user:
-    description: "The username used for authenticating with the registry or remote service."
-    required: true
+    description: "Username for the registry."
+    required: false
   registry_pass:
-    description: "The password or token used for authenticating with the registry or remote service."
-    required: true
+    description: "Password or token for the registry."
+    required: false
   enable_rollback:
-    description: "Whether to enable automatic rollback if the deployment fails (true/false)."
+    description: "Automatically roll back if deployment fails (`true` or `false`)."
     required: false
     default: "false"
   env_vars:
-    description: "Environment variables to write to a .env file and upload to the server."
+    description: "Environment variables to include in a `.env` file uploaded to the server."
     required: false
-
+  verbose:
+    description: "Show extra internal command details and debug output (`true` or `false`)."
+    required: false
+    default: "false"
+  
 runs:
   using: "composite"
   steps:
@@ -111,8 +115,8 @@ runs:
         SSH_KEY: ${{ inputs.ssh_key }}
         SSH_KEY_PASSPHRASE: ${{ inputs.ssh_key_passphrase }}
         SSH_KNOWN_HOSTS: ${{ inputs.ssh_known_hosts }}
-        FINGERPRINT: ${{ inputs.fingerprint }}
-        TIMEOUT: ${{ inputs.timeout }}
+        SSH_FINGERPRINT: ${{ inputs.ssh_fingerprint }}
+        SSH_TIMEOUT: ${{ inputs.ssh_timeout }}
         PROJECT_PATH: ${{ inputs.project_path }}
         DEPLOY_FILE: ${{ inputs.deploy_file }}
         EXTRA_FILES: ${{ inputs.extra_files }}
@@ -131,3 +135,4 @@ runs:
         REGISTRY_PASS: ${{ inputs.registry_pass }}
         ENABLE_ROLLBACK: ${{ inputs.enable_rollback }}
         ENV_VARS: ${{ inputs.env_vars }}
+        VERBOSE: ${{ inputs.verbose }}
