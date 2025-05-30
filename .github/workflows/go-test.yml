@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   unit:
@@ -38,7 +39,7 @@ jobs:
         run: go build -o deploy-action ./main.go
 
       - name: Run E2E Deploy Test (compose)
-        run: go test -tags=e2e ./tests -v
+        run: go test -tags=e2e ./tests/e2e -v
         env:
           MODE: compose
           SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
@@ -47,14 +48,16 @@ jobs:
           REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
-          DEPLOY_FILE: ./tests/testdata/compose/docker-compose.yml
+          DEPLOY_FILE: tests/testdata/compose/docker-compose.yml
           PROJECT_PATH: /home/${{ secrets.TEST_SSH_USER }}/test/compose
-          EXTRA_FILES: ./tests/testdata/compose/.env
+          EXTRA_FILES: |
+            flatten tests/testdata/compose/.env
           DOCKER_NETWORK: test_network_compose
           DOCKER_NETWORK_DRIVER: bridge
+          VERBOSE: true
     
       - name: Run E2E Deploy Test (stack)
-        run: go test -tags=e2e ./tests -v
+        run: go test -tags=e2e ./tests/e2e -v
         env:
           MODE: stack
           SSH_HOST: ${{ secrets.TEST_SSH_HOST }}
@@ -63,9 +66,11 @@ jobs:
           REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
-          DEPLOY_FILE: ./tests/testdata/stack/docker-stack.yml
+          DEPLOY_FILE: tests/testdata/stack/docker-stack.yml
           PROJECT_PATH: /home/${{ secrets.TEST_SSH_USER }}/test/stack
-          EXTRA_FILES: ./tests/testdata/stack/redis.conf,./tests/testdata/stack/nginx.conf
+          EXTRA_FILES: |
+            flatten tests/testdata/stack/redis.conf
+            flatten tests/testdata/stack/nginx.conf
           DOCKER_NETWORK: test_network_stack
           DOCKER_NETWORK_DRIVER: overlay
           STACK_NAME: test_stack
@@ -74,3 +79,4 @@ jobs:
             POSTGRES_USER=user
             POSTGRES_PASSWORD=password
             WEB_PORT=8080
+          VERBOSE: true

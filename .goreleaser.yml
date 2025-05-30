@@ -1,5 +1,5 @@
-version: 2
 project_name: docker-deploy-action-go
+version: 2
 
 before:
   hooks:

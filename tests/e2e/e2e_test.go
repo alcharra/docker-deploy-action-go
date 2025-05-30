@@ -23,7 +23,7 @@ func TestDeployBinary_MainDeploy(t *testing.T) {
 		binary += ".exe"
 	}
 
-	binaryPath, err := filepath.Abs(filepath.Join("..", binary))
+	binaryPath, err := filepath.Abs(filepath.Join("../../", binary))
 	if err != nil {
 		t.Fatalf("failed to resolve binary path: %v", err)
 	}
@@ -33,7 +33,7 @@ func TestDeployBinary_MainDeploy(t *testing.T) {
 	}
 
 	cmd := exec.Command(binaryPath)
-	cmd.Dir = ".."
+	cmd.Dir = "../../"
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -45,17 +45,17 @@ func TestDeployBinary_MainDeploy(t *testing.T) {
 		"SSH_KEY="+cfg.SSHKey,
 		"SSH_KEY_PASSPHRASE="+cfg.SSHKeyPassphrase,
 		"SSH_KNOWN_HOSTS="+cfg.SSHKnownHosts,
-		"FINGERPRINT="+cfg.Fingerprint,
-		"TIMEOUT="+cfg.Timeout,
+		"SSH_FINGERPRINT="+cfg.SSHFingerprint,
+		"SSH_TIMEOUT="+cfg.SSHTimeout,
 		"PROJECT_PATH="+cfg.ProjectPath,
 		"DEPLOY_FILE="+cfg.DeployFile,
-		"EXTRA_FILES="+strings.Join(cfg.ExtraFiles, ","),
+		"EXTRA_FILES="+strings.Join(cfg.ExtraFiles, "\n"),
 		"MODE="+cfg.Mode,
 		"STACK_NAME="+cfg.StackName,
 		"COMPOSE_PULL="+strconv.FormatBool(cfg.ComposePull),
 		"COMPOSE_BUILD="+strconv.FormatBool(cfg.ComposeBuild),
 		"COMPOSE_NO_DEPS="+strconv.FormatBool(cfg.ComposeNoDeps),
-		"COMPOSE_TARGET_SERVICES="+strings.Join(cfg.ComposeTargetServices, ","),
+		"COMPOSE_TARGET_SERVICES="+strings.Join(cfg.ComposeTargetServices, "\n"),
 		"DOCKER_NETWORK="+cfg.DockerNetwork,
 		"DOCKER_NETWORK_DRIVER="+cfg.DockerNetworkDriver,
 		"DOCKER_NETWORK_ATTACHABLE="+strconv.FormatBool(cfg.DockerNetworkAttach),
@@ -65,13 +65,14 @@ func TestDeployBinary_MainDeploy(t *testing.T) {
 		"REGISTRY_PASS="+cfg.RegistryPass,
 		"ENABLE_ROLLBACK="+strconv.FormatBool(cfg.EnableRollback),
 		"ENV_VARS="+cfg.EnvVars,
+		"VERBOSE="+strconv.FormatBool(cfg.Verbose),
 	)
 
-	t.Logf("🚀 Running E2E deploy with: %s", binaryPath)
+	t.Logf("\U0001F680 Running E2E deploy with: %s", binaryPath)
 
 	if err := cmd.Run(); err != nil {
-		t.Fatalf("🚨 deploy-action binary failed: %v", err)
+		t.Fatalf("\U0001F6A8 deploy-action binary failed: %v", err)
 	}
 
-	t.Log("✅ E2E deployment test passed")
+	t.Log("\u2705 E2E deployment test passed")
 }

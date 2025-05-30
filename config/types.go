@@ -7,8 +7,8 @@ type DeployConfig struct {
 	SSHKey                string
 	SSHKeyPassphrase      string
 	SSHKnownHosts         string
-	Fingerprint           string
-	Timeout               string
+	SSHFingerprint        string
+	SSHTimeout            string
 	ProjectPath           string
 	DeployFile            string
 	ExtraFiles            []string
@@ -27,4 +27,7 @@ type DeployConfig struct {
 	RegistryPass          string
 	EnableRollback        bool
 	EnvVars               string
+	Verbose               bool
+	RollbackTriggered     bool
+	ComposeBinary         string
 }
