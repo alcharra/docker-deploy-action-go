@@ -9,6 +9,7 @@ import (
 	"github.com/alcharra/docker-deploy-action-go/internal/logs"
 	"github.com/alcharra/docker-deploy-action-go/internal/ssh/client"
 	"github.com/alcharra/docker-deploy-action-go/internal/utils"
+	"github.com/alcharra/docker-deploy-action-go/internal/validator"
 )
 
 func DeployDockerStack(cli *client.Client, cfg config.DeployConfig) {
@@ -16,6 +17,11 @@ func DeployDockerStack(cli *client.Client, cfg config.DeployConfig) {
 
 	if cfg.Mode != "stack" {
 		return
+	}
+
+	if err := validateStackFile(cfg); err != nil {
+		logs.Errorf("%s", err)
+		logs.Fatalf("Aborting deployment")
 	}
 
 	logs.Step("\u2693 Deploying Docker stack...")
@@ -32,6 +38,25 @@ func DeployDockerStack(cli *client.Client, cfg config.DeployConfig) {
 	if err := validateStackStatus(cli, cfg, false); err != nil {
 		handleDeploymentFailures(cli, cfg)
 	}
+}
+
+func validateStackFile(cfg config.DeployConfig) error {
+	deployFilePath := cfg.DeployFile
+
+	logs.Step("\U0001F9EA Validating Docker Stack file...")
+	logs.Verbosef("Stack file: %s", deployFilePath)
+
+	stackCfg, err := validator.LoadComposeFile(deployFilePath)
+	if err != nil {
+		return err
+	}
+
+	if err := stackCfg.Validate(); err != nil {
+		return err
+	}
+
+	logs.Success("Stack file validation passed")
+	return nil
 }
 
 func runStackDeployment(cli *client.Client, cfg config.DeployConfig) error {
@@ -86,7 +111,7 @@ func validateStackStatus(cli *client.Client, cfg config.DeployConfig, afterDeplo
 
 	var failedServices []string
 
-	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(output), "\n") {
 		fields := strings.Fields(line)
 		if len(fields) < 5 {
 			continue

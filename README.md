@@ -7,9 +7,9 @@
 [![CodeQL](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/alcharra/docker-deploy-action-go/actions/workflows/codeql-analysis.yml)
 [![GoDoc](https://godoc.org/github.com/alcharra/docker-deploy-action-go?status.svg)](https://godoc.org/github.com/alcharra/docker-deploy-action-go)
 
-A **fast and dependable GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** apps over SSH.  
+A **fast and dependable GitHub Action** written in Go for deploying **Docker Compose** and **Docker Swarm** apps over SSH.
 
-It handles everything from **file uploads** and **network setup** to **health checks**, **rollback** and **clean-up** — so your deployments stay simple, safe, and consistent.
+It handles everything from **file uploads** and **network setup** to **health checks**, **rollback** and **clean-up** — so your deployments stay simple, safe and consistent.
 
 ## Performance Comparison
 
@@ -207,6 +207,37 @@ Rollback will not trigger if:
 - Services are stopped or altered manually outside of deployment
 - `enable_rollback` is set to `false`
 
+## YAML Validation (Beta)
+
+This action now includes built-in validation for your Docker stack YAML file before deployment. It helps catch mistakes early and gives clear, readable feedback.
+
+> [!WARNING]  
+> YAML validation is a new feature and currently in **beta**. It may not catch every edge case or match `docker stack deploy` exactly, but it's actively being improved.
+
+### What It Checks
+
+- The `version` field is present and supported
+- Each service defines an `image`
+- `build` is not used (not supported in `docker stack deploy`)
+- `deploy.replicas` is a positive number
+- Port mappings use the correct `HOST:CONTAINER` format
+- `command` values are valid (a string or list of strings)
+- Placement constraints use valid syntax (like `node.role == manager`)
+- Referenced `configs` and `secrets` exist at the top level
+- `volumes`, `networks`, `configs` and `secrets` are defined as maps
+- Duplicate keys are flagged to avoid unexpected behaviour
+
+> [!NOTE]  
+> This validation only applies when using **stack** mode.  
+> If you're using **compose** mode, Docker's built-in `docker compose config` already performs deep validation automatically before deployment.
+
+### Why It Matters
+
+This check helps prevent common problems that could break your deployment, like missing fields, misconfigured services or invalid syntax. It makes issues easier to spot and fix before they cause failures.
+
+> [!NOTE]  
+> More checks and improvements will be added over time. If you find a validation error that seems wrong, feel free to open an issue.
+
 ### Example
 
 ```yaml
@@ -363,4 +394,3 @@ This helps keep feature requests organised and visible to others who may want th
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-````
