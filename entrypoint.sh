@@ -5,7 +5,8 @@ set -o nounset
 set -o pipefail
 
 REPO="alcharra/docker-deploy-action-go"
-RELEASE_VERSION="${RELEASE_VERSION:-v2.0.0}"
+LATEST_VERSION="v2.0.1"
+RELEASE_VERSION="${RELEASE_VERSION:-$LATEST_VERSION}"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH_RAW="$(uname -m)"
 ARCH="$ARCH_RAW"
@@ -40,7 +41,7 @@ echo -e "\U0001F9F0 Extracting binary..."
 tar -xzf "$ARCHIVE"
 chmod +x docker-deploy-action-go*
 
-echo -e "\U0001F680 Running docker-deploy-action-go version $RELEASE_VERSION..."
+echo -e "\U0001F680 Running docker-deploy-action-go version $LATEST_VERSION..."
 ./docker-deploy-action-go* "$@"
 
 rm "$ARCHIVE"
