@@ -6,7 +6,6 @@ set -o pipefail
 
 REPO="alcharra/docker-deploy-action-go"
 LATEST_VERSION="v2.0.1"
-RELEASE_VERSION="${RELEASE_VERSION:-$LATEST_VERSION}"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH_RAW="$(uname -m)"
 ARCH="$ARCH_RAW"
@@ -22,17 +21,12 @@ case "$ARCH_RAW" in
   *) echo "❌ ERROR: Unsupported architecture: $ARCH_RAW"; exit 1 ;;
 esac
 
-if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+(\.[0-9]+)*$'; then
-  echo "❌ No valid release version provided (got '$RELEASE_VERSION'). Must be a tag like v1.2.3"
-  exit 1
-fi
-
-VERSION_NO_V="${RELEASE_VERSION#v}"
+VERSION_NO_V="${LATEST_VERSION#v}"
 FILENAME="docker-deploy-action-go-${VERSION_NO_V}-${OS}-${ARCH}"
 [ -n "$VARIANT" ] && FILENAME="${FILENAME}-${VARIANT}"
 ARCHIVE="${FILENAME}.tar.gz"
 
-URL="https://github.com/${REPO}/releases/download/${RELEASE_VERSION}/${ARCHIVE}"
+URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}/${ARCHIVE}"
 
 echo "📦 Downloading from: $URL"
 curl -fsSL --retry 5 "$URL" -o "$ARCHIVE"
