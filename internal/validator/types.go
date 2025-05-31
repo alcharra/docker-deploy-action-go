@@ -9,15 +9,21 @@ type ComposeFile struct {
 	Secrets  map[string]*SecretDefinition  `yaml:"secrets,omitempty"`
 }
 
+type StringMap map[string]string
+
 type ServiceDefinition struct {
-	Image   string            `yaml:"image"`
-	Build   interface{}       `yaml:"build,omitempty"`
-	Env     map[string]string `yaml:"environment,omitempty"`
-	Configs []ConfigReference `yaml:"configs,omitempty"`
-	Secrets []SecretReference `yaml:"secrets,omitempty"`
-	Deploy  *DeployDefinition `yaml:"deploy,omitempty"`
-	Ports   []interface{}     `yaml:"ports,omitempty"`
-	Command interface{}       `yaml:"command,omitempty"`
+	Image      string            `yaml:"image"`
+	Build      interface{}       `yaml:"build,omitempty"`
+	Env        StringMap         `yaml:"environment,omitempty"`
+	Labels     StringMap         `yaml:"labels,omitempty"`
+	Configs    []ConfigReference `yaml:"configs,omitempty"`
+	Secrets    []SecretReference `yaml:"secrets,omitempty"`
+	Deploy     *DeployDefinition `yaml:"deploy,omitempty"`
+	Ports      []interface{}     `yaml:"ports,omitempty"`
+	Command    interface{}       `yaml:"command,omitempty"`
+	Entrypoint interface{}       `yaml:"entrypoint,omitempty"`
+	Volumes    []interface{}     `yaml:"volumes,omitempty"`
+	Networks   []interface{}     `yaml:"networks,omitempty"`
 }
 
 type DeployDefinition struct {
