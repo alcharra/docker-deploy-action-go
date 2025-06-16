@@ -12,7 +12,7 @@ func LoadConfig() DeployConfig {
 		SSHTimeout:            getEnv("SSH_TIMEOUT", "10s"),
 		ProjectPath:           getEnv("PROJECT_PATH", ""),
 		DeployFile:            getEnv("DEPLOY_FILE", "docker-compose.yml"),
-		ExtraFiles:            splitEnv("EXTRA_FILES"),
+		ExtraFiles:            ParseExtraFilesFromEnv("EXTRA_FILES"),
 		Mode:                  getEnv("MODE", "compose"),
 		StackName:             getEnv("STACK_NAME", ""),
 		ComposePull:           getBool("COMPOSE_PULL", true),

@@ -11,7 +11,7 @@ type DeployConfig struct {
 	SSHTimeout            string
 	ProjectPath           string
 	DeployFile            string
-	ExtraFiles            []string
+	ExtraFiles            []ExtraFile
 	Mode                  string
 	StackName             string
 	ComposePull           bool
@@ -30,4 +30,10 @@ type DeployConfig struct {
 	Verbose               bool
 	RollbackTriggered     bool
 	ComposeBinary         string
+}
+
+type ExtraFile struct {
+	Src     string
+	Dst     string
+	Flatten bool
 }

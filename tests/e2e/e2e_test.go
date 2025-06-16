@@ -49,7 +49,7 @@ func TestDeployBinary_MainDeploy(t *testing.T) {
 		"SSH_TIMEOUT="+cfg.SSHTimeout,
 		"PROJECT_PATH="+cfg.ProjectPath,
 		"DEPLOY_FILE="+cfg.DeployFile,
-		"EXTRA_FILES="+strings.Join(cfg.ExtraFiles, "\n"),
+		"EXTRA_FILES="+strings.Join(extraFilesToEnv(cfg.ExtraFiles), "\n"),
 		"MODE="+cfg.Mode,
 		"STACK_NAME="+cfg.StackName,
 		"COMPOSE_PULL="+strconv.FormatBool(cfg.ComposePull),

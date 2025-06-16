@@ -117,34 +117,38 @@ If you want to upload a file **directly to the root of the deployment folder**, 
 
 ### How It Works
 
-- Files are normally uploaded with their **relative path preserved** (default).
-- Prefix a path with `flatten` to upload the file(s) **directly into the root** of the `project_path`, removing any folders from the path.
-- Works with both **individual files** and **glob patterns** like `folder/*.env`.
+- Files are uploaded with their **relative path preserved** by default.
+- Prefix a path with `flatten` to upload file(s) **directly into the root** of the `project_path`, removing any folder structure.
+- Use `source:destination` syntax to specify a custom destination path.
+- Entire directories are supported and uploaded **recursively**, preserving structure.
+- Supports both **individual files** and **glob patterns** such as `folder/*.env` or `assets/**/*`.
 
 > [!NOTE]
-> If multiple files flatten to the same name, the action will throw an error to prevent overwriting. Always ensure flattened paths are unique.
+> If multiple files flatten to the same name, the action will throw an error to prevent overwriting. Ensure flattened filenames are unique.
 
-### Example
+### Examples
 
 ```yaml
 extra_files: |
-  .env.production                  # → project-root/.env.production (preserved)
-  configs/*                        # → project-root/configs/*.*
-  flatten configs/*                # → project-root/*.*
-  flatten configs/db.env           # → project-root/db.env
-  configs/**/*.conf                # → project-root/configs/**.conf
-  flatten configs/**/*.conf        # → project-root/**.conf
-  flatten configs/legacy.conf      # → project-root/legacy.conf
-  scripts/init.sh                  # → project-root/scripts/init.sh
-  flatten scripts/init.sh          # → project-root/init.sh
-  assets/**/*                      # → project-root/assets/**/* (preserved structure)
+  .env.production                        # → project-root/.env.production (preserved)
+  configs/*                              # → project-root/configs/*.*
+  flatten configs/*                      # → project-root/*.*
+  flatten configs/db.env                 # → project-root/db.env
+  configs/**/*.conf                      # → project-root/configs/**/*.conf
+  flatten configs/**/*.conf              # → project-root/**/*.conf
+  flatten configs/legacy.conf            # → project-root/legacy.conf
+  scripts/init.sh                        # → project-root/scripts/init.sh
+  flatten scripts/init.sh                # → project-root/init.sh
+  assets/**/*                            # → project-root/assets/**/* (preserved structure)
+  assets/:resources/                     # → project-root/resources/**/* (preserved under custom target)
+  flatten assets/images/*.png:img/       # → project-root/img/*.png (flattened into folder)
 ```
 
 ### Best Practice
 
-- Use `flatten` **only when you need to remove the folder structure** from uploaded files.
-- Avoid flattening entire folders unless you are sure the filenames will not conflict.
-- Prefer preserved paths for most uploads to keep your deployment layout predictable and maintainable.
+- Use `flatten` **only when necessary** to remove folder structure.
+- Avoid flattening entire directories unless you're confident there are no filename conflicts.
+- Default to preserved paths to ensure clarity and maintainability in your deployment layout.
 
 ## Docker Network Management
 
@@ -207,6 +211,20 @@ Rollback will not trigger if:
 - Services are stopped or altered manually outside of deployment
 - `enable_rollback` is set to `false`
 
+### Example
+
+```yaml
+enable_rollback: true
+mode: compose
+```
+
+or:
+
+```yaml
+enable_rollback: true
+mode: stack
+```
+
 ## YAML Validation (Beta)
 
 This action now includes built-in validation for your Docker stack YAML file before deployment. It helps catch mistakes early and gives clear, readable feedback.
@@ -237,20 +255,6 @@ This check helps prevent common problems that could break your deployment, like 
 
 > [!NOTE]  
 > More checks and improvements will be added over time. If you find a validation error that seems wrong, feel free to open an issue.
-
-### Example
-
-```yaml
-enable_rollback: true
-mode: compose
-```
-
-or:
-
-```yaml
-enable_rollback: true
-mode: stack
-```
 
 ## Example Workflows
 

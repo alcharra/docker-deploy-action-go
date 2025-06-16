@@ -31,29 +31,17 @@ func UploadFiles(cli *client.Client, cfg config.DeployConfig) []UploadedFile {
 		NoteColor:   logs.GrayColor,
 	})
 
-	for _, raw := range cfg.ExtraFiles {
-		raw = strings.TrimSpace(raw)
-		if raw == "" {
-			continue
-		}
+	for _, ef := range cfg.ExtraFiles {
+		src := ef.Src
+		dst := ef.Dst
+		flatten := ef.Flatten
 
-		flatten := false
-		pathSpec := raw
-		if strings.HasPrefix(raw, "flatten ") {
-			flatten = true
-			pathSpec = strings.TrimSpace(strings.TrimPrefix(raw, "flatten "))
-		}
-
-		if filepath.IsAbs(pathSpec) {
-			logs.Fatalf("Absolute paths are not allowed in extra_files: %s", pathSpec)
-		}
-
-		matches, err := filepath.Glob(pathSpec)
+		matches, err := filepath.Glob(src)
 		if err != nil {
-			logs.Fatalf("Invalid glob pattern: %s", pathSpec)
+			logs.Fatalf("Invalid glob pattern: %s", src)
 		}
 		if len(matches) == 0 {
-			logs.Fatalf("No matches found for: %s", pathSpec)
+			logs.Fatalf("No matches found for: %s", src)
 		}
 
 		for _, match := range matches {
@@ -61,22 +49,96 @@ func UploadFiles(cli *client.Client, cfg config.DeployConfig) []UploadedFile {
 			if err != nil {
 				logs.Fatalf("Cannot access '%s': %v", match, err)
 			}
+
 			if info.IsDir() {
+				err := filepath.Walk(match, func(walkedPath string, walkedInfo os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					if walkedInfo.IsDir() {
+						return nil
+					}
+
+					localPath := filepath.ToSlash(walkedPath)
+					var remotePath, note, color string
+					relPath, _ := filepath.Rel(match, walkedPath)
+					base := filepath.Base(localPath)
+
+					if flatten {
+						if dst != "" {
+							if strings.HasSuffix(dst, "/") {
+								remotePath = path.Join(cfg.ProjectPath, dst, base)
+							} else {
+								remotePath = path.Join(cfg.ProjectPath, dst)
+							}
+							note = "(flattened-custom)"
+						} else {
+							remotePath = path.Join(cfg.ProjectPath, base)
+							note = "(flattened)"
+						}
+						if existing, ok := seenFlattened[base]; ok {
+							flattenConflicts++
+							logs.Fatalf("Flattening conflict: both '%s' and '%s' target '%s'", existing, localPath, base)
+						}
+						seenFlattened[base] = localPath
+						color = logs.GrayColor
+					} else if dst != "" {
+						remotePath = path.Join(cfg.ProjectPath, dst, relPath)
+						note = "(custom-dir)"
+						color = logs.GrayColor
+					} else {
+						rel, err := filepath.Rel(".", localPath)
+						if err != nil {
+							logs.Fatalf("Failed to resolve relative path: %v", err)
+						}
+						remotePath = path.Join(cfg.ProjectPath, filepath.ToSlash(rel))
+						note = "(preserved-dir)"
+						color = logs.GrayColor
+					}
+
+					planned = append(planned, UploadItem{
+						Source:      localPath,
+						Destination: filepath.ToSlash(remotePath),
+						Note:        note,
+						NoteColor:   color,
+					})
+					return nil
+				})
+				if err != nil {
+					logs.Fatalf("Failed to walk directory '%s': %v", match, err)
+				}
 				continue
 			}
 
 			localPath := filepath.ToSlash(match)
 			var remotePath, note, color string
+			base := filepath.Base(localPath)
 
 			if flatten {
-				base := filepath.Base(localPath)
-				remotePath = path.Join(cfg.ProjectPath, base)
+				if dst != "" {
+					if strings.HasSuffix(dst, "/") {
+						remotePath = path.Join(cfg.ProjectPath, dst, base)
+					} else {
+						remotePath = path.Join(cfg.ProjectPath, dst)
+					}
+					note = "(flattened-custom)"
+				} else {
+					remotePath = path.Join(cfg.ProjectPath, base)
+					note = "(flattened)"
+				}
 				if existing, ok := seenFlattened[base]; ok {
 					flattenConflicts++
 					logs.Fatalf("Flattening conflict: both '%s' and '%s' target '%s'", existing, localPath, base)
 				}
 				seenFlattened[base] = localPath
-				note = "(flattened)"
+				color = logs.GrayColor
+			} else if dst != "" {
+				if strings.HasSuffix(dst, "/") {
+					remotePath = path.Join(cfg.ProjectPath, dst, filepath.Base(match))
+				} else {
+					remotePath = path.Join(cfg.ProjectPath, dst)
+				}
+				note = "(custom)"
 				color = logs.GrayColor
 			} else {
 				rel, err := filepath.Rel(".", localPath)
@@ -85,6 +147,7 @@ func UploadFiles(cli *client.Client, cfg config.DeployConfig) []UploadedFile {
 				}
 				remotePath = path.Join(cfg.ProjectPath, filepath.ToSlash(rel))
 				note = "(preserved)"
+				color = logs.GrayColor
 			}
 
 			planned = append(planned, UploadItem{
@@ -119,7 +182,7 @@ func UploadFiles(cli *client.Client, cfg config.DeployConfig) []UploadedFile {
 		}
 	}
 
-	logs.Step("📄 Planned uploads...")
+	logs.Step("\U0001F4C4 Planned uploads...")
 	for _, item := range planned {
 		src := fmt.Sprintf("%-*s", maxSrcLen, item.Source)
 		dst := fmt.Sprintf("%-*s", maxDstLen, item.Destination)
@@ -133,7 +196,7 @@ func UploadFiles(cli *client.Client, cfg config.DeployConfig) []UploadedFile {
 	logs.Successf("%d files prepared for upload", len(planned))
 	logs.Warnf("%d flattening conflicts", flattenConflicts)
 
-	logs.Step("📦 Uploading files...")
+	logs.Step("\U0001F4E6 Uploading files...")
 	for _, item := range planned {
 		if item.Source == ".env" && cfg.EnvVars != "" {
 			logs.Verbose("Creating temporary .env file with inline variables")
