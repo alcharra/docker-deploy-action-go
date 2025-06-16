@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 
 REPO="alcharra/docker-deploy-action-go"
-LATEST_VERSION="v2.0.1"
+LATEST_VERSION="v2.1.0"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH_RAW="$(uname -m)"
 ARCH="$ARCH_RAW"
