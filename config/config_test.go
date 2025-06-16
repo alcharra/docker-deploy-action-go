@@ -5,6 +5,7 @@ package config
 
 import (
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -63,8 +64,8 @@ func TestLoadConfig_WithEnvOverrides(t *testing.T) {
 
 func TestLoadConfig_SliceParsing_Newline(t *testing.T) {
 	t.Setenv("EXTRA_FILES", `
-		./tests/testdata/stack/redis.conf
-		./tests/testdata/stack/nginx.conf
+		flatten ./tests/testdata/stack/redis.conf
+		flatten ./tests/testdata/stack/nginx.conf:dir/
 	`)
 	t.Setenv("COMPOSE_TARGET_SERVICES", `
 		web
@@ -73,22 +74,18 @@ func TestLoadConfig_SliceParsing_Newline(t *testing.T) {
 
 	cfg := LoadConfig()
 
-	expectedExtra := []string{
-		"./tests/testdata/stack/redis.conf",
-		"./tests/testdata/stack/nginx.conf",
+	expectedExtra := []ExtraFile{
+		{Src: "./tests/testdata/stack/redis.conf", Dst: "", Flatten: true},
+		{Src: "./tests/testdata/stack/nginx.conf", Dst: "dir/", Flatten: true},
 	}
 	expectedServices := []string{"web", "db"}
 
-	for i, file := range expectedExtra {
-		if i >= len(cfg.ExtraFiles) || cfg.ExtraFiles[i] != file {
-			t.Errorf("expected ExtraFiles[%d] to be %q, got %q", i, file, cfg.ExtraFiles[i])
-		}
+	if !reflect.DeepEqual(cfg.ExtraFiles, expectedExtra) {
+		t.Errorf("expected ExtraFiles to be %v, got %v", expectedExtra, cfg.ExtraFiles)
 	}
 
-	for i, svc := range expectedServices {
-		if i >= len(cfg.ComposeTargetServices) || cfg.ComposeTargetServices[i] != svc {
-			t.Errorf("expected ComposeTargetServices[%d] to be %q, got %q", i, svc, cfg.ComposeTargetServices[i])
-		}
+	if !reflect.DeepEqual(cfg.ComposeTargetServices, expectedServices) {
+		t.Errorf("expected ComposeTargetServices to be %v, got %v", expectedServices, cfg.ComposeTargetServices)
 	}
 }
 
